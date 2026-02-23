@@ -11,7 +11,7 @@ from datetime import datetime
 
 load_dotenv()
 
-app = FastAPI(title="GAG Quiz API")
+app = FastAPI(title="BRA Quiz API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,14 +42,22 @@ class SubmitResult(BaseModel):
 class AdminLogin(BaseModel):
     password: str
 
+from fastapi.responses import HTMLResponse
+
 # ===== PAGES =====
 @app.get("/")
 def index():
-    return FileResponse("index.html")
+    content = open("index.html", "r", encoding="utf-8").read()
+    return HTMLResponse(content=content, headers={
+        "Content-Security-Policy": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
+    })
 
 @app.get("/admin")
 def admin():
-    return FileResponse("admin.html")
+    content = open("admin.html", "r", encoding="utf-8").read()
+    return HTMLResponse(content=content, headers={
+        "Content-Security-Policy": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
+    })
 
 # ===== QUIZ API =====
 @app.post("/api/start")
