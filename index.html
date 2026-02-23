@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GAG Quiz</title>
+<title>BRA Quiz</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -121,7 +121,7 @@
 </head>
 <body>
 <div class="container">
-  <div class="logo">GAG QUIZ</div>
+  <div class="logo">BRA QUIZ</div>
   <div class="tagline">Bilgini test et · Sıralamaya gir</div>
 
   <!-- GİRİŞ -->
@@ -200,31 +200,34 @@
 const API = "https://gag-production.up.railway.app";
 
 const QUESTIONS = [
-  { q: "Türkiye'nin başkenti hangi şehirdir?", opts: ["İstanbul","Ankara","İzmir","Bursa"], ans: 1 },
-  { q: "Güneş Sistemi'nde kaç gezegen vardır?", opts: ["7","8","9","10"], ans: 1 },
-  { q: "Su'nun kimyasal formülü nedir?", opts: ["CO2","H2O","O2","NaCl"], ans: 1 },
-  { q: "1 yılda kaç ay vardır?", opts: ["10","11","12","13"], ans: 2 },
-  { q: "Türkiye'nin para birimi nedir?", opts: ["Euro","Dolar","Lira","Pound"], ans: 2 },
-  { q: "Dünya'nın uydusu hangisidir?", opts: ["Mars","Ay","Güneş","Venüs"], ans: 1 },
-  { q: "En büyük okyanus hangisidir?", opts: ["Atlantik","Hint","Arktik","Pasifik"], ans: 3 },
-  { q: "İnsan vücudunda kaç kemik vardır?", opts: ["106","156","206","256"], ans: 2 },
-  { q: "Türkiye kaç kıtada yer alır?", opts: ["1","2","3","4"], ans: 1 },
-  { q: "Olimpiyat Oyunları kaç yılda bir düzenlenir?", opts: ["2","3","4","5"], ans: 2 },
-  { q: "Işığın boşluktaki hızı yaklaşık kaç km/s'dir?", opts: ["100.000","200.000","300.000","400.000"], ans: 2 },
-  { q: "DNA'nın açılımı nedir?", opts: ["Dinükleik Asit","Deoksiribonükleik Asit","Diaminonik Asit","Dehibronükleik Asit"], ans: 1 },
-  { q: "Osmanlı İmparatorluğu'nu kuran padişah kimdir?", opts: ["Osman Gazi","Orhan Gazi","Murat I","Yıldırım Bayezid"], ans: 0 },
-  { q: "Periyodik tabloda Au sembolü hangi elementtir?", opts: ["Gümüş","Altın","Alüminyum","Arsenik"], ans: 1 },
-  { q: "Romeo ve Juliet hangi ülkede geçer?", opts: ["İngiltere","Fransa","İtalya","İspanya"], ans: 2 },
-  { q: "Fibonacci dizisinde 8'den sonra gelen sayı nedir?", opts: ["10","12","13","16"], ans: 2 },
-  { q: "Dünya'da en çok konuşulan dil hangisidir?", opts: ["İngilizce","Mandarin Çincesi","İspanyolca","Hintçe"], ans: 1 },
-  { q: "Mitolojide Denizler Tanrısı kimdir?", opts: ["Zeus","Hades","Poseidon","Ares"], ans: 2 },
-  { q: "İlk modern Olimpiyat Oyunları hangi yılda düzenlendi?", opts: ["1896","1900","1904","1908"], ans: 0 },
-  { q: "Avustralya'nın başkenti hangisidir?", opts: ["Sidney","Melbourne","Brisbane","Canberra"], ans: 3 },
-  { q: "Kuantum mekaniğinde 'süperpozisyon' ne anlama gelir?", opts: ["Parçacığın iki yerde aynı anda bulunması","Parçacıkların çarpışması","Dalganın bozulması","Enerjinin korunması"], ans: 0 },
-  { q: "İstanbul'un fethinde büyük topların tasarımcısı kimdir?", opts: ["Akşemsettin","Urban","Ali Kuşçu","Zaganos Paşa"], ans: 1 },
-  { q: "O(n log n) zaman karmaşıklığına sahip sıralama algoritması?", opts: ["Bubble Sort","Selection Sort","Merge Sort","Insertion Sort"], ans: 2 },
-  { q: "Birinci Dünya Savaşı'nı sona erdiren antlaşma hangisidir?", opts: ["Versailles","Paris","Lozan","Sevr"], ans: 0 },
-  { q: "E=mc²'deki 'c' neyi temsil eder?", opts: ["Kütle","Enerji katsayısı","Işık hızı","Coulomb sabiti"], ans: 2 },
+  // KOLAY - 10 PUAN (1-10)
+  { q: "TikTok'ta kısa video paylaşma süresi başlangıçta maksimum kaç saniyeydi?", opts: ["15 saniye","30 saniye","60 saniye","90 saniye"], ans: 0 },
+  { q: "TikTok hangi yıl global olarak piyasaya sürüldü?", opts: ["2016","2018","2014","2020"], ans: 1 },
+  { q: "Göbek dansı videolarıyla dünya çapında viral olan TikTok fenomeni kimdir?", opts: ["Yasin Cengiz","Torlak","Berke Juan","Sefo"], ans: 0 },
+  { q: "2026'da en çok takipçili TikTok fenomeni kimdir?", opts: ["Charli D'Amelio","Addison Rae","Khaby Lame","Zach King"], ans: 2 },
+  { q: "Dubai'de Türk fenomenlerle ilgili 2026'da yaşanan olay nedir?", opts: ["Ortak bir müzik projesi","Fenomenler arasında kavga görüntülerinin yayılması","Uluslararası ödül töreni","TikTok Shop lansmanı"], ans: 1 },
+  { q: "TikTok'ta kullanıcıların videolara aynı sesle kendi versiyonlarını çekmesine ne denir?", opts: ["Duet","Clone","Stitch","Remix"], ans: 2 },
+  { q: "TikTok uygulamasının logosundaki renkler nelerdir?", opts: ["Kırmızı – Beyaz – Siyah","Siyah – Turkuaz – Pembe","Mavi – Sarı – Beyaz","Yeşil – Siyah – Gri"], ans: 1 },
+  { q: "'Challenge' kelimesi TikTok'ta ne anlama gelir?", opts: ["Hesap silme işlemi","Trend olan meydan okuma veya akım","Video düzenleme programı","Gizli mesaj"], ans: 1 },
+  { q: "TikTok'ta bir videonun daha çok kişiye ulaşmasını sağlayan ne tür etiketler kullanılır?", opts: ["Gizli etiketler","Hashtag (#) etiketleri","Link etiketleri","Emoji etiketleri"], ans: 1 },
+  { q: "TikTok'un Çin'de kullanılan orijinal versiyonunun adı nedir?", opts: ["Douyin","WeChat","Kwai","ClipGo"], ans: 0 },
+  // ORTA - 20 PUAN (11-20) — LÜTFEN DOLDURUN
+  { q: "[Soru 11 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 12 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 13 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 14 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 15 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 16 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 17 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 18 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 19 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 20 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  // ZOR - 30 PUAN (21-25) — LÜTFEN DOLDURUN
+  { q: "[Soru 21 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 22 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 23 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 24 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "[Soru 25 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
 ];
 
 let user = null, qIdx = 0, score = 0, correct = 0, wrong = 0;
