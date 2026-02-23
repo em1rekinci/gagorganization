@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRA Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --card: #1a1a24;
+    --border: #2a2a38;
+    --accent: #ff6b35;
+    --accent2: #ffd23f;
+    --text: #e8e8f0;
+    --muted: #666680;
+    --green: #4ade80;
+    --red: #f87171;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 70% 20%, rgba(255,107,53,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, rgba(255,210,63,0.05) 0%, transparent 40%);
+    pointer-events: none; z-index: 0;
+  }
+  .container { max-width: 640px; margin: 0 auto; padding: 2rem 1.5rem; position: relative; z-index: 1; }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-align: center; margin-bottom: 0.2rem;
+  }
+  .tagline { text-align: center; color: var(--muted); font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3rem; }
+  .screen { display: none; animation: fadeIn 0.35s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; }
+  label { display: block; font-size: 0.75rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.5rem; }
+  input[type="email"], input[type="text"] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.85rem 1rem; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--accent); }
+  .form-group { margin-bottom: 1.2rem; }
+  .btn {
+    width: 100%; padding: 0.9rem; border-radius: 10px; border: none;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 1rem;
+    font-weight: 600; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #ff8c55); color: white; }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,53,0.35); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); margin-top: 0.75rem; }
+  .btn-secondary:hover { border-color: var(--accent); }
+  .error { color: var(--red); font-size: 0.82rem; margin-top: 0.4rem; }
+
+  /* PUAN SİSTEMİ */
+  .point-grid { display: grid; gap: 0.6rem; }
+  .point-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 1rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--border); }
+  .badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 99px; font-size: 0.72rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  .badge-easy { background: rgba(74,222,128,0.15); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+  .badge-medium { background: rgba(255,210,63,0.15); color: var(--accent2); border: 1px solid rgba(255,210,63,0.3); }
+  .badge-hard { background: rgba(255,107,53,0.15); color: var(--accent); border: 1px solid rgba(255,107,53,0.3); }
+  .pt-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; }
+
+  /* QUIZ */
+  .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+  .progress-wrap { background: var(--surface); border-radius: 99px; height: 5px; margin-bottom: 0.8rem; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+  .progress-info { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+  .timer-ring-wrap { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
+  .timer-ring-wrap svg { transform: rotate(-90deg); }
+  .timer-track { fill: none; stroke: var(--border); stroke-width: 4; }
+  .timer-fill { fill: none; stroke: var(--accent2); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 126; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
+  .timer-fill.warning { stroke: var(--red); }
+  .timer-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text); }
+
+  .q-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+  .q-num { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--accent); line-height: 1; flex-shrink: 0; }
+  .q-text { font-size: 1.05rem; font-weight: 500; line-height: 1.55; padding-top: 0.2rem; }
+  .options { display: grid; gap: 0.65rem; }
+  .option {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 0.85rem 1rem; cursor: pointer; transition: all 0.18s;
+    display: flex; align-items: center; gap: 0.8rem; font-size: 0.92rem;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: rgba(255,107,53,0.07); }
+  .option.selected { border-color: var(--accent); background: rgba(255,107,53,0.12); }
+  .option.correct { border-color: var(--green); background: rgba(74,222,128,0.12); }
+  .option.wrong { border-color: var(--red); background: rgba(248,113,113,0.12); }
+  .option.disabled { pointer-events: none; }
+  .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+  .option.selected .opt-letter { background: var(--accent); color: white; }
+  .option.correct .opt-letter { background: var(--green); color: white; }
+  .option.wrong .opt-letter { background: var(--red); color: white; }
+  .btn-next { margin-top: 1.2rem; display: none; }
+  .btn-next.show { display: block; }
+
+  /* RESULT */
+  .score-big { font-family: 'Bebas Neue', sans-serif; font-size: 5.5rem; text-align: center; line-height: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .score-sub { text-align: center; color: var(--muted); margin-bottom: 1.5rem; font-size: 0.85rem; }
+  .breakdown { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.65rem; margin-bottom: 1.2rem; }
+  .bk-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; text-align: center; }
+  .bk-val { font-size: 1.5rem; font-weight: 700; }
+  .bk-lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.2rem; }
+  .result-msg { text-align: center; color: var(--muted); font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">BRA QUIZ</div>
+  <div class="tagline">Bilgini test et · Sıralamaya gir</div>
+
+  <!-- GİRİŞ -->
+  <div class="screen active" id="screen-login">
+    <div class="card">
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;margin-bottom:0.3rem;">Giriş Yap</h2>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.5rem;">E-posta adresiniz ile yarışmaya katılın.</p>
+      <div class="form-group">
+        <label>E-posta</label>
+        <input type="email" id="inp-email" placeholder="ornek@mail.com" />
+        <div class="error" id="err-email"></div>
+      </div>
+      <div class="form-group">
+        <label>Ad Soyad</label>
+        <input type="text" id="inp-name" placeholder="Adınız Soyadınız" />
+        <div class="error" id="err-name"></div>
+      </div>
+      <button class="btn btn-primary" id="btn-login" onclick="handleLogin()">Yarışmaya Başla →</button>
+    </div>
+    <div class="card">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;margin-bottom:1rem;">Puan Sistemi</div>
+      <div class="point-grid">
+        <div class="point-row"><span><span class="badge badge-easy">Kolay</span> &nbsp;Soru 1–10</span><span class="pt-val" style="color:var(--green)">10 PT</span></div>
+        <div class="point-row"><span><span class="badge badge-medium">Orta</span> &nbsp;Soru 11–20</span><span class="pt-val" style="color:var(--accent2)">20 PT</span></div>
+        <div class="point-row"><span><span class="badge badge-hard">Zor</span> &nbsp;Soru 21–25</span><span class="pt-val" style="color:var(--accent)">30 PT</span></div>
+      </div>
+      <p style="margin-top:1rem;color:var(--muted);font-size:0.78rem;">25 soru · 10 saniye her soru · Max 450 puan</p>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-top">
+      <span id="q-badge" class="badge badge-easy">Kolay · 10 PT</span>
+      <div class="timer-ring-wrap">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="timer-track" cx="26" cy="26" r="20"/>
+          <circle class="timer-fill" id="timer-circle" cx="26" cy="26" r="20"/>
+        </svg>
+        <div class="timer-num" id="timer-num">10</div>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="prog-bar" style="width:4%"></div></div>
+    <div class="progress-info">
+      <span id="prog-text">Soru 1 / 25</span>
+      <span id="score-live">0 Puan</span>
+    </div>
+    <div class="card">
+      <div class="q-header">
+        <div class="q-num" id="q-num">01</div>
+        <div class="q-text" id="q-text"></div>
+      </div>
+      <div class="options" id="opts"></div>
+      <button class="btn btn-primary btn-next" id="btn-next" onclick="nextQ()">Sonraki →</button>
+    </div>
+  </div>
+
+  <!-- SONUÇ -->
+  <div class="screen" id="screen-result">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2.8rem;margin-bottom:0.5rem;" id="res-emoji">🎉</div>
+      <div class="score-big" id="res-score">0</div>
+      <div class="score-sub">Puan · <span id="res-rank-txt">#1 Sırada</span></div>
+      <div class="breakdown">
+        <div class="bk-item"><div class="bk-val" id="res-correct" style="color:var(--green)">0</div><div class="bk-lbl">Doğru</div></div>
+        <div class="bk-item"><div class="bk-val" id="res-wrong" style="color:var(--red)">0</div><div class="bk-lbl">Yanlış</div></div>
+        <div class="bk-item"><div class="bk-val" id="res-rank" style="color:var(--accent2)">#—</div><div class="bk-lbl">Sıralama</div></div>
+      </div>
+      <div class="result-msg" id="res-msg"></div>
+    </div>
+    <button class="btn btn-secondary" onclick="restartQuiz()">↩ Tekrar Oyna</button>
+  </div>
+</div>
+
+<script>
+const API = window.API_BASE || "http://localhost:8000";
+
+const QUESTIONS = [
+  { q: "Türkiye'nin başkenti hangi şehirdir?", opts: ["İstanbul","Ankara","İzmir","Bursa"], ans: 1 },
+  { q: "Güneş Sistemi'nde kaç gezegen vardır?", opts: ["7","8","9","10"], ans: 1 },
+  { q: "Su'nun kimyasal formülü nedir?", opts: ["CO2","H2O","O2","NaCl"], ans: 1 },
+  { q: "1 yılda kaç ay vardır?", opts: ["10","11","12","13"], ans: 2 },
+  { q: "Türkiye'nin para birimi nedir?", opts: ["Euro","Dolar","Lira","Pound"], ans: 2 },
+  { q: "Dünya'nın uydusu hangisidir?", opts: ["Mars","Ay","Güneş","Venüs"], ans: 1 },
+  { q: "En büyük okyanus hangisidir?", opts: ["Atlantik","Hint","Arktik","Pasifik"], ans: 3 },
+  { q: "İnsan vücudunda kaç kemik vardır?", opts: ["106","156","206","256"], ans: 2 },
+  { q: "Türkiye kaç kıtada yer alır?", opts: ["1","2","3","4"], ans: 1 },
+  { q: "Olimpiyat Oyunları kaç yılda bir düzenlenir?", opts: ["2","3","4","5"], ans: 2 },
+  { q: "Işığın boşluktaki hızı yaklaşık kaç km/s'dir?", opts: ["100.000","200.000","300.000","400.000"], ans: 2 },
+  { q: "DNA'nın açılımı nedir?", opts: ["Dinükleik Asit","Deoksiribonükleik Asit","Diaminonik Asit","Dehibronükleik Asit"], ans: 1 },
+  { q: "Osmanlı İmparatorluğu'nu kuran padişah kimdir?", opts: ["Osman Gazi","Orhan Gazi","Murat I","Yıldırım Bayezid"], ans: 0 },
+  { q: "Periyodik tabloda Au sembolü hangi elementtir?", opts: ["Gümüş","Altın","Alüminyum","Arsenik"], ans: 1 },
+  { q: "Romeo ve Juliet hangi ülkede geçer?", opts: ["İngiltere","Fransa","İtalya","İspanya"], ans: 2 },
+  { q: "Fibonacci dizisinde 8'den sonra gelen sayı nedir?", opts: ["10","12","13","16"], ans: 2 },
+  { q: "Dünya'da en çok konuşulan dil hangisidir?", opts: ["İngilizce","Mandarin Çincesi","İspanyolca","Hintçe"], ans: 1 },
+  { q: "Mitolojide Denizler Tanrısı kimdir?", opts: ["Zeus","Hades","Poseidon","Ares"], ans: 2 },
+  { q: "İlk modern Olimpiyat Oyunları hangi yılda düzenlendi?", opts: ["1896","1900","1904","1908"], ans: 0 },
+  { q: "Avustralya'nın başkenti hangisidir?", opts: ["Sidney","Melbourne","Brisbane","Canberra"], ans: 3 },
+  { q: "Kuantum mekaniğinde 'süperpozisyon' ne anlama gelir?", opts: ["Parçacığın iki yerde aynı anda bulunması","Parçacıkların çarpışması","Dalganın bozulması","Enerjinin korunması"], ans: 0 },
+  { q: "İstanbul'un fethinde büyük topların tasarımcısı kimdir?", opts: ["Akşemsettin","Urban","Ali Kuşçu","Zaganos Paşa"], ans: 1 },
+  { q: "O(n log n) zaman karmaşıklığına sahip sıralama algoritması?", opts: ["Bubble Sort","Selection Sort","Merge Sort","Insertion Sort"], ans: 2 },
+  { q: "Birinci Dünya Savaşı'nı sona erdiren antlaşma hangisidir?", opts: ["Versailles","Paris","Lozan","Sevr"], ans: 0 },
+  { q: "E=mc²'deki 'c' neyi temsil eder?", opts: ["Kütle","Enerji katsayısı","Işık hızı","Coulomb sabiti"], ans: 2 },
+];
+
+let user = null, qIdx = 0, score = 0, correct = 0, wrong = 0;
+let answered = false, timer = null, timeLeft = 10;
+const TIMER_MAX = 10;
+const CIRCUMFERENCE = 2 * Math.PI * 20; // r=20
+
+function pts(i) { return i < 10 ? 10 : i < 20 ? 20 : 30; }
+function badge(i) {
+  if (i < 10) return ['badge-easy','Kolay · 10 PT'];
+  if (i < 20) return ['badge-medium','Orta · 20 PT'];
+  return ['badge-hard','Zor · 30 PT'];
+}
+
+async function handleLogin() {
+  const email = document.getElementById('inp-email').value.trim();
+  const name = document.getElementById('inp-name').value.trim();
+  document.getElementById('err-email').textContent = '';
+  document.getElementById('err-name').textContent = '';
+  let ok = true;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('err-email').textContent = 'Geçerli e-posta girin.'; ok = false; }
+  if (name.length < 2) { document.getElementById('err-name').textContent = 'Adınızı girin.'; ok = false; }
+  if (!ok) return;
+
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = 'Bağlanıyor...';
+
+  try {
+    const res = await fetch(`${API}/api/start`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, name })
+    });
+    if (!res.ok) throw new Error();
+    user = { email, name };
+    startQuiz();
+  } catch {
+    document.getElementById('err-email').textContent = 'Sunucuya bağlanılamadı. API adresini kontrol edin.';
+    btn.disabled = false; btn.textContent = 'Yarışmaya Başla →';
+  }
+}
+
+function startQuiz() {
+  qIdx = 0; score = 0; correct = 0; wrong = 0;
+  showScreen('quiz');
+  renderQ();
+}
+
+function renderQ() {
+  answered = false;
+  const q = QUESTIONS[qIdx];
+  const [bcls, btxt] = badge(qIdx);
+  document.getElementById('q-badge').className = 'badge ' + bcls;
+  document.getElementById('q-badge').textContent = btxt;
+  document.getElementById('q-num').textContent = String(qIdx+1).padStart(2,'0');
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('prog-text').textContent = `Soru ${qIdx+1} / 25`;
+  document.getElementById('score-live').textContent = score + ' Puan';
+  document.getElementById('prog-bar').style.width = ((qIdx/25)*100) + '%';
+  document.getElementById('btn-next').classList.remove('show');
+
+  const letters = ['A','B','C','D'];
+  const container = document.getElementById('opts');
+  container.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const el = document.createElement('div');
+    el.className = 'option';
+    el.innerHTML = `<div class="opt-letter">${letters[i]}</div><div>${opt}</div>`;
+    el.onclick = () => pick(i, el);
+    container.appendChild(el);
+  });
+
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timer);
+  timeLeft = TIMER_MAX;
+  updateTimer();
+  timer = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+    if (timeLeft <= 0) { clearInterval(timer); if (!answered) autoFail(); }
+  }, 1000);
+}
+
+function updateTimer() {
+  const pct = timeLeft / TIMER_MAX;
+  const offset = CIRCUMFERENCE * (1 - pct);
+  const circle = document.getElementById('timer-circle');
+  circle.style.strokeDashoffset = offset;
+  circle.className = 'timer-fill' + (timeLeft <= 3 ? ' warning' : '');
+  document.getElementById('timer-num').textContent = timeLeft;
+}
+
+function autoFail() {
+  answered = true; wrong++;
+  const opts = document.querySelectorAll('.option');
+  opts[QUESTIONS[qIdx].ans].classList.add('correct');
+  opts.forEach(o => o.classList.add('disabled'));
+  document.getElementById('btn-next').classList.add('show');
+}
+
+function pick(idx, el) {
+  if (answered) return;
+  answered = true; clearInterval(timer);
+  const opts = document.querySelectorAll('.option');
+  opts.forEach(o => o.classList.add('disabled'));
+  if (idx === QUESTIONS[qIdx].ans) {
+    el.classList.add('correct');
+    score += pts(qIdx); correct++;
+  } else {
+    el.classList.add('wrong');
+    opts[QUESTIONS[qIdx].ans].classList.add('correct');
+    wrong++;
+  }
+  document.getElementById('score-live').textContent = score + ' Puan';
+  document.getElementById('btn-next').classList.add('show');
+}
+
+function nextQ() {
+  qIdx++;
+  if (qIdx >= QUESTIONS.length) finishQuiz();
+  else renderQ();
+}
+
+async function finishQuiz() {
+  clearInterval(timer);
+  try {
+    await fetch(`${API}/api/submit`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email: user.email, name: user.name, score, correct, wrong })
+    });
+    const rankRes = await fetch(`${API}/api/my-rank?email=${encodeURIComponent(user.email)}`);
+    const rankData = await rankRes.json();
+    showResult(rankData.rank, rankData.total);
+  } catch {
+    showResult(null, null);
+  }
+}
+
+function showResult(rank, total) {
+  document.getElementById('res-score').textContent = score;
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent = wrong;
+  const rankTxt = rank ? `#${rank} / ${total} Kişi` : '—';
+  document.getElementById('res-rank-txt').textContent = rankTxt;
+  document.getElementById('res-rank').textContent = rank ? '#'+rank : '—';
+
+  let emoji = '📚', msg = 'Daha iyi yapabilirsin, tekrar dene!';
+  if (score >= 400) { emoji = '🏆'; msg = 'Mükemmel performans! Zirvedesin!'; }
+  else if (score >= 280) { emoji = '🎉'; msg = 'Çok iyi! Üst sıralarda yerini aldın!'; }
+  else if (score >= 160) { emoji = '💪'; msg = 'Fena değil! Biraz daha çalış!'; }
+
+  document.getElementById('res-emoji').textContent = emoji;
+  document.getElementById('res-msg').textContent = msg;
+  showScreen('result');
+}
+
+function restartQuiz() {
+  document.getElementById('inp-email').value = '';
+  document.getElementById('inp-name').value = '';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Yarışmaya Başla →';
+  user = null;
+  showScreen('login');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel, EmailStr
+from supabase import create_client, Client
+import os
+from dotenv import load_dotenv
+from datetime import datetime
+
+load_dotenv()
+
+app = FastAPI(title="BRA Quiz API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+security = HTTPBearer(auto_error=False)
+
+# ===== MODELS =====
+class StartQuiz(BaseModel):
+    email: str
+    name: str
+
+class SubmitResult(BaseModel):
+    email: str
+    name: str
+    score: int
+    correct: int
+    wrong: int
+
+class AdminLogin(BaseModel):
+    password: str
+
+# ===== HEALTH =====
+@app.get("/")
+def root():
+    return {"status": "BRA Quiz API çalışıyor 🚀"}
+
+# ===== QUIZ =====
+@app.post("/api/start")
+def start_quiz(data: StartQuiz):
+    """Kullanıcı giriş yaptığında kaydeder"""
+    try:
+        existing = supabase.table("participants").select("*").eq("email", data.email).execute()
+        if existing.data:
+            return {"ok": True, "returning": True, "name": existing.data[0]["name"]}
+        
+        supabase.table("participants").insert({
+            "email": data.email,
+            "name": data.name,
+            "started_at": datetime.utcnow().isoformat()
+        }).execute()
+        return {"ok": True, "returning": False}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/submit")
+def submit_result(data: SubmitResult):
+    """Quiz sonucunu kaydeder - aynı mailde en yüksek skoru tutar"""
+    try:
+        existing = supabase.table("results").select("*").eq("email", data.email).execute()
+        
+        payload = {
+            "email": data.email,
+            "name": data.name,
+            "score": data.score,
+            "correct": data.correct,
+            "wrong": data.wrong,
+            "submitted_at": datetime.utcnow().isoformat()
+        }
+
+        if existing.data:
+            old_score = existing.data[0]["score"]
+            if data.score > old_score:
+                supabase.table("results").update(payload).eq("email", data.email).execute()
+                return {"ok": True, "updated": True, "improved": True}
+            return {"ok": True, "updated": False, "best_score": old_score}
+        else:
+            supabase.table("results").insert(payload).execute()
+            return {"ok": True, "updated": True, "improved": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/my-rank")
+def get_my_rank(email: str):
+    """Kullanıcının sıralamasını döndürür"""
+    try:
+        all_results = supabase.table("results").select("email, score").order("score", desc=True).execute()
+        rank = next((i+1 for i, r in enumerate(all_results.data) if r["email"] == email), None)
+        total = len(all_results.data)
+        return {"rank": rank, "total": total}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===== ADMIN =====
+@app.post("/api/admin/login")
+def admin_login(data: AdminLogin):
+    if data.password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Yanlış şifre")
+    return {"ok": True, "token": ADMIN_PASSWORD}
+
+def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    if not credentials or credentials.credentials != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Yetkisiz")
+    return True
+
+@app.get("/api/admin/leaderboard")
+def admin_leaderboard(_=Depends(verify_admin)):
+    """Admin: tüm katılımcıları sıralı döndürür"""
+    try:
+        results = supabase.table("results")\
+            .select("*")\
+            .order("score", desc=True)\
+            .execute()
+        return {"ok": True, "data": results.data, "total": len(results.data)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/admin/stats")
+def admin_stats(_=Depends(verify_admin)):
+    """Admin: genel istatistikler"""
+    try:
+        results = supabase.table("results").select("score, correct").execute()
+        participants = supabase.table("participants").select("email").execute()
+        
+        scores = [r["score"] for r in results.data]
+        avg_score = sum(scores) / len(scores) if scores else 0
+        avg_correct = sum(r["correct"] for r in results.data) / len(results.data) if results.data else 0
+        
+        return {
+            "ok": True,
+            "total_participants": len(participants.data),
+            "total_completed": len(results.data),
+            "avg_score": round(avg_score, 1),
+            "avg_correct": round(avg_correct, 1),
+            "max_score": max(scores) if scores else 0,
+            "min_score": min(scores) if scores else 0,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/admin/result/{email}")
+def delete_result(email: str, _=Depends(verify_admin)):
+    """Admin: kullanıcı sonucunu siler"""
+    try:
+        supabase.table("results").delete().eq("email", email).execute()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

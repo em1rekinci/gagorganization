@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRA Quiz — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08080e;
+    --surface: #111118;
+    --card: #16161f;
+    --border: #252532;
+    --accent: #ff6b35;
+    --accent2: #ffd23f;
+    --text: #e8e8f0;
+    --muted: #555570;
+    --green: #4ade80;
+    --red: #f87171;
+    --blue: #60a5fa;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  
+  /* LOGIN */
+  .login-wrap {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem;
+  }
+  .login-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 380px; }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 3px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.2rem; }
+  .logo-sub { color: var(--muted); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem; }
+  label { display: block; font-size: 0.72rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.45rem; }
+  input[type="password"] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.8rem 1rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1rem;
+    outline: none; transition: border-color 0.2s; margin-bottom: 1rem;
+  }
+  input:focus { border-color: var(--accent); }
+  .btn { width: 100%; padding: 0.85rem; border-radius: 10px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; transition: all 0.2s; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #ff8c55); color: white; }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,53,0.35); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .err { color: var(--red); font-size: 0.82rem; margin-top: 0.5rem; text-align: center; }
+
+  /* DASHBOARD */
+  #dashboard { display: none; }
+  .topbar {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 2px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .logout-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.9rem; color: var(--muted); font-size: 0.8rem; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .logout-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.4rem; }
+  .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; line-height: 1; }
+  .stat-lbl { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.3rem; }
+
+  /* TABLE */
+  .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 2px; }
+  .refresh-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 1rem; color: var(--text); font-size: 0.82rem; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.2s; }
+  .refresh-btn:hover { border-color: var(--accent); }
+
+  .search-wrap { position: relative; }
+  .search-wrap input {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.45rem 1rem 0.45rem 2.2rem; color: var(--text); font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem; outline: none; width: 220px;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.85rem; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0.7rem 1rem; text-align: left; font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; white-space: nowrap; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: rgba(255,107,53,0.04); }
+  tbody td { padding: 0.85rem 1rem; font-size: 0.88rem; }
+  .rank-cell { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--muted); }
+  .rank-cell.gold { color: #ffd23f; }
+  .rank-cell.silver { color: #c0c0c8; }
+  .rank-cell.bronze { color: #cd7f32; }
+  .score-cell { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--accent); }
+  .email-cell { color: var(--muted); font-size: 0.8rem; }
+  .correct-cell { color: var(--green); font-weight: 600; }
+  .wrong-cell { color: var(--red); font-weight: 600; }
+  .del-btn { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.25); border-radius: 6px; padding: 0.25rem 0.6rem; color: var(--red); font-size: 0.75rem; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .del-btn:hover { background: rgba(248,113,113,0.2); }
+
+  .empty { text-align: center; padding: 3rem; color: var(--muted); }
+  .loading { text-align: center; padding: 2rem; color: var(--muted); }
+
+  .date-cell { font-size: 0.78rem; color: var(--muted); }
+
+  /* EXPORT */
+  .export-btn { background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25); border-radius: 8px; padding: 0.45rem 1rem; color: var(--blue); font-size: 0.82rem; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.2s; }
+  .export-btn:hover { background: rgba(96,165,250,0.18); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-panel">
+  <div class="login-box">
+    <div class="logo">BRA QUIZ</div>
+    <div class="logo-sub">Admin Paneli</div>
+    <div>
+      <label>Şifre</label>
+      <input type="password" id="pass-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+      <button class="btn btn-primary" id="login-btn" onclick="doLogin()">Giriş Yap</button>
+      <div class="err" id="login-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-logo">BRA QUIZ · Admin</div>
+    <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
+  </div>
+  <div class="main">
+    <!-- İSTATİSTİKLER -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-val" id="s-total" style="color:var(--blue)">—</div><div class="stat-lbl">Toplam Katılımcı</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-completed" style="color:var(--green)">—</div><div class="stat-lbl">Tamamlayan</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-avg" style="color:var(--accent2)">—</div><div class="stat-lbl">Ort. Puan</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-max" style="color:var(--accent)">—</div><div class="stat-lbl">En Yüksek Puan</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-correct" style="color:var(--green)">—</div><div class="stat-lbl">Ort. Doğru</div></div>
+    </div>
+
+    <!-- TABLO -->
+    <div class="table-header">
+      <div class="section-title">Sıralama Tablosu</div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-inp" placeholder="İsim veya e-posta..." oninput="filterTable()" />
+        </div>
+        <button class="export-btn" onclick="exportCSV()">📥 CSV İndir</button>
+        <button class="refresh-btn" onclick="loadData()">↻ Yenile</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Ad Soyad</th>
+            <th>E-posta</th>
+            <th>Puan</th>
+            <th>Doğru</th>
+            <th>Yanlış</th>
+            <th>Tarih</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="lb-body">
+          <tr><td colspan="8" class="loading">Yükleniyor...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.API_BASE || "http://localhost:8000";
+let token = null;
+let allData = [];
+
+async function doLogin() {
+  const pass = document.getElementById('pass-input').value;
+  const btn = document.getElementById('login-btn');
+  document.getElementById('login-err').textContent = '';
+  btn.disabled = true; btn.textContent = 'Giriş yapılıyor...';
+
+  try {
+    const res = await fetch(`${API}/api/admin/login`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pass })
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    token = data.token;
+    document.getElementById('login-panel').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadData();
+  } catch {
+    document.getElementById('login-err').textContent = 'Şifre yanlış veya sunucuya bağlanılamadı.';
+    btn.disabled = false; btn.textContent = 'Giriş Yap';
+  }
+}
+
+async function loadData() {
+  await Promise.all([loadStats(), loadLeaderboard()]);
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch(`${API}/api/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    document.getElementById('s-total').textContent = data.total_participants;
+    document.getElementById('s-completed').textContent = data.total_completed;
+    document.getElementById('s-avg').textContent = data.avg_score;
+    document.getElementById('s-max').textContent = data.max_score;
+    document.getElementById('s-correct').textContent = data.avg_correct + ' / 25';
+  } catch {}
+}
+
+async function loadLeaderboard() {
+  const tbody = document.getElementById('lb-body');
+  tbody.innerHTML = '<tr><td colspan="8" class="loading">Yükleniyor...</td></tr>';
+  try {
+    const res = await fetch(`${API}/api/admin/leaderboard`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const data = await res.json();
+    allData = data.data || [];
+    renderTable(allData);
+  } catch {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">Veri alınamadı.</td></tr>';
+  }
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('lb-body');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">Henüz katılımcı yok.</td></tr>'; return; }
+  const rankColors = ['gold','silver','bronze'];
+  tbody.innerHTML = data.map((r, i) => {
+    const date = r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('tr-TR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    return `<tr>
+      <td class="rank-cell ${rankColors[i]||''}">${i+1}</td>
+      <td><strong>${escHtml(r.name)}</strong></td>
+      <td class="email-cell">${escHtml(r.email)}</td>
+      <td class="score-cell">${r.score}</td>
+      <td class="correct-cell">${r.correct}</td>
+      <td class="wrong-cell">${r.wrong}</td>
+      <td class="date-cell">${date}</td>
+      <td><button class="del-btn" onclick="deleteEntry('${escHtml(r.email)}')">Sil</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable() {
+  const q = document.getElementById('search-inp').value.toLowerCase();
+  const filtered = allData.filter(r => r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q));
+  renderTable(filtered);
+}
+
+async function deleteEntry(email) {
+  if (!confirm(`${email} kullanıcısını silmek istediğinizden emin misiniz?`)) return;
+  try {
+    await fetch(`${API}/api/admin/result/${encodeURIComponent(email)}`, {
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+    });
+    allData = allData.filter(r => r.email !== email);
+    renderTable(allData);
+    loadStats();
+  } catch { alert('Silme işlemi başarısız.'); }
+}
+
+function exportCSV() {
+  if (!allData.length) { alert('Dışa aktarılacak veri yok.'); return; }
+  const header = ['Sıra','Ad Soyad','E-posta','Puan','Doğru','Yanlış','Tarih'];
+  const rows = allData.map((r, i) => [
+    i+1, r.name, r.email, r.score, r.correct, r.wrong,
+    r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('tr-TR') : ''
+  ]);
+  const csv = [header, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `bra_quiz_${new Date().toLocaleDateString('tr-TR').replace(/\./g,'-')}.csv`;
+  a.click();
+}
+
+function logout() {
+  token = null; allData = [];
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-panel').style.display = 'flex';
+  document.getElementById('pass-input').value = '';
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
