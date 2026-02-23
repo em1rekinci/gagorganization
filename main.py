@@ -1,8 +1,7 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from supabase import create_client, Client
 import os
@@ -12,6 +11,12 @@ from datetime import datetime
 load_dotenv()
 
 app = FastAPI(title="BRA Quiz API")
+
+@app.middleware("http")
+async def add_csp_header(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Content-Security-Policy"] = "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
+    return response
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,22 +47,16 @@ class SubmitResult(BaseModel):
 class AdminLogin(BaseModel):
     password: str
 
-from fastapi.responses import HTMLResponse
-
 # ===== PAGES =====
 @app.get("/")
 def index():
     content = open("index.html", "r", encoding="utf-8").read()
-    return HTMLResponse(content=content, headers={
-        "Content-Security-Policy": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
-    })
+    return HTMLResponse(content=content)
 
 @app.get("/admin")
 def admin():
     content = open("admin.html", "r", encoding="utf-8").read()
-    return HTMLResponse(content=content, headers={
-        "Content-Security-Policy": "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
-    })
+    return HTMLResponse(content=content)
 
 # ===== QUIZ API =====
 @app.post("/api/start")

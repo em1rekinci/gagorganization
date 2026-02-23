@@ -288,7 +288,7 @@ function renderQ() {
   document.getElementById('prog-text').textContent = `Soru ${qIdx+1} / 25`;
   document.getElementById('score-live').textContent = score + ' Puan';
   document.getElementById('prog-bar').style.width = ((qIdx/25)*100) + '%';
-  document.getElementById('btn-next').classList.remove('show');
+  // btn-next yok
 
   const letters = ['A','B','C','D'];
   const container = document.getElementById('opts');
