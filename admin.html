@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BRA Quiz — Admin</title>
+<title>GAG Quiz — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -108,7 +108,7 @@
 <!-- LOGIN -->
 <div class="login-wrap" id="login-panel">
   <div class="login-box">
-    <div class="logo">BRA QUIZ</div>
+    <div class="logo">GAG QUIZ</div>
     <div class="logo-sub">Admin Paneli</div>
     <div>
       <label>Şifre</label>
@@ -122,7 +122,7 @@
 <!-- DASHBOARD -->
 <div id="dashboard">
   <div class="topbar">
-    <div class="topbar-logo">BRA QUIZ · Admin</div>
+    <div class="topbar-logo">GAG QUIZ · Admin</div>
     <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
   </div>
   <div class="main">
@@ -275,7 +275,7 @@ function exportCSV() {
   const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `bra_quiz_${new Date().toLocaleDateString('tr-TR').replace(/\./g,'-')}.csv`;
+  a.download = `gag_quiz_${new Date().toLocaleDateString('tr-TR').replace(/\./g,'-')}.csv`;
   a.click();
 }
 

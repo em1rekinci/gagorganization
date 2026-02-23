@@ -11,7 +11,7 @@ from datetime import datetime
 
 load_dotenv()
 
-app = FastAPI(title="BRA Quiz API")
+app = FastAPI(title="GAG Quiz API")
 
 app.add_middleware(
     CORSMiddleware,
