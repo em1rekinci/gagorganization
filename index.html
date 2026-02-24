@@ -97,7 +97,9 @@
     padding: 0.85rem 1rem; cursor: pointer; transition: all 0.18s;
     display: flex; align-items: center; gap: 0.8rem; font-size: 0.92rem;
   }
-  .option:hover:not(.disabled) { border-color: var(--accent); background: rgba(255,107,53,0.07); }
+  @media (hover: hover) {
+    .option:hover:not(.disabled) { border-color: var(--accent); background: rgba(255,107,53,0.07); }
+  }
   .option.selected { border-color: var(--accent); background: rgba(255,107,53,0.12); }
   .option.correct { border-color: var(--green); background: rgba(74,222,128,0.12); }
   .option.wrong { border-color: var(--red); background: rgba(248,113,113,0.12); }
@@ -203,33 +205,33 @@ const API = "https://gagorganization.fun";
 
 const QUESTIONS = [
   // KOLAY - 10 PUAN (1-10)
-  { q: "TikTok'ta kısa video paylaşma süresi başlangıçta maksimum kaç saniyeydi?", opts: ["15 saniye","30 saniye","60 saniye","90 saniye"], ans: 0 },
-  { q: "TikTok hangi yıl global olarak piyasaya sürüldü?", opts: ["2016","2018","2014","2020"], ans: 1 },
-  { q: "Göbek dansı videolarıyla dünya çapında viral olan TikTok fenomeni kimdir?", opts: ["Yasin Cengiz","Torlak","Berke Juan","Sefo"], ans: 0 },
-  { q: "2026'da en çok takipçili TikTok fenomeni kimdir?", opts: ["Charli D'Amelio","Addison Rae","Khaby Lame","Zach King"], ans: 2 },
-  { q: "Dubai'de Türk fenomenlerle ilgili 2026'da yaşanan olay nedir?", opts: ["Ortak bir müzik projesi","Fenomenler arasında kavga görüntülerinin yayılması","Uluslararası ödül töreni","TikTok Shop lansmanı"], ans: 1 },
-  { q: "TikTok'ta kullanıcıların videolara aynı sesle kendi versiyonlarını çekmesine ne denir?", opts: ["Duet","Clone","Stitch","Remix"], ans: 2 },
-  { q: "TikTok uygulamasının logosundaki renkler nelerdir?", opts: ["Kırmızı – Beyaz – Siyah","Siyah – Turkuaz – Pembe","Mavi – Sarı – Beyaz","Yeşil – Siyah – Gri"], ans: 1 },
-  { q: "'Challenge' kelimesi TikTok'ta ne anlama gelir?", opts: ["Hesap silme işlemi","Trend olan meydan okuma veya akım","Video düzenleme programı","Gizli mesaj"], ans: 1 },
-  { q: "TikTok'ta bir videonun daha çok kişiye ulaşmasını sağlayan ne tür etiketler kullanılır?", opts: ["Gizli etiketler","Hashtag (#) etiketleri","Link etiketleri","Emoji etiketleri"], ans: 1 },
+  { q: "Özge nişanda oynayacak yer bulamazken ortada oynayan kişi kimdir ?", opts: ["Annesi","Kardeşi","Eren","Eltisi"], ans: 3 },
+  { q: "Derin Talu annesi tatilde olduğu için ne içememiştir?", opts: ["Latte","Milkshake","Matcha","Çay"], ans: 2 },
+  { q: "Aşağıdakiler hangisi YağızJr nin eski sevgilisi değildir?", opts: ["Berfinmis","Özüm Altın","Sudenaz Bulut","Beyza Aksoy"], ans: 3 },
   { q: "TikTok'un Çin'de kullanılan orijinal versiyonunun adı nedir?", opts: ["Douyin","WeChat","Kwai","ClipGo"], ans: 0 },
-  // ORTA - 20 PUAN (11-20) — LÜTFEN DOLDURUN
-  { q: "[Soru 11 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 12 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 13 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 14 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 15 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 16 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 17 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 18 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 19 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 20 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  // ZOR - 30 PUAN (21-25) — LÜTFEN DOLDURUN
-  { q: "[Soru 21 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 22 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 23 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 24 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
-  { q: "[Soru 25 - formu düzenle]", opts: ["A","B","C","D"], ans: 0 },
+  { q: "Göbek dansı videolarıyla dünya çapında viral olan TikTok fenomeni kimdir?", opts: ["Özdemirkol","Torlak","Yasin Cengiz","Onur Sermik"], ans: 2 },
+  { q: "2026’da en çok takipçili TikTok fenomeni kimdir?", opts: ["Charli D’Amelio","Khaby Lame","Zach King","Addison Rae"], ans: 1 },
+  { q: "Aşagıdakiler hangisi MEF'in Ev Arkadaşıydı ?", opts: ["Batuhan Yılmaz","Serdar Ortaç","Onur Sermik","Özdemirkol"], ans: 0 },
+  { q: "Cellat36 nın Tam ismi nedir ?", opts: ["Mehmet Deniz Cellat","Özgür Deniz Cellat","Ömer Deniz Cellat","Ozan Deniz Cellat"], ans: 1 },
+  { q: "Hülya Mizgin’in çocuklarının adı nedir?", opts: ["Abdi ve Hira","Abdur ve Hera","Ayan ve Mira","Abdu ve Lara"], ans: 0 },
+  { q: "Cansum Tatlı'nın Kocasının Adı nedir ?", opts: ["Karabey","Yusufcan Öcal","Sinan Kaya","Batuhan Çelik"], ans: 2 },
+  // ORTA - 20 PUAN (11-20) 
+  { q: "Teslo Taylan aşağıdakilerden hangi kişiye ev ziyareti yapmamıştır?", opts: ["Ankaralı Batman","Medine","Yakışıklı güvenlik","Güven Demir"], ans: 2 },
+  { q: "Kış Kızı’nın eşinin adı nedir?", opts: ["Hasan","Murat","Mehmet","Hüseyin"], ans: 0 },
+  { q: "Kadın kadın … en güzel kadını diyen Mükremin gergin hangi yılın en güzel kadınıdır?", opts: ["2021","2023","2025","2024"], ans: 2 },
+  { q: "Kış kızının kardeşi Rabia’nın mesleği nedir?", opts: ["Aşçı","Ev Hanımı","Öğrenci","Başhekim "], ans: 3 },
+  { q: "Çoğu TikTok içerik üreticisinin video çektiği duvar hangi AVM'dedir?", opts: ["Marmarapark AVM","ANKAMALL","Optimum AVM","Cevahir AVM"], ans: 3 },
+  { q: "Etkileşim için çocuk yapıyor denilen ve hamileliğiyle gündeme düşen Tiktoker Kimdir ?", opts: ["Dilan Polat","Özlem Öz","Ceren Yaldız","Hülya Mizgin"], ans: 1 },
+  { q: "TikTok’un ilk kurulduğu dönemdeki adı neydi ve hangi şirket tarafından satın alındı?", opts: ["Vine – Meta","Dubsmash – Google","Musical.ly – ByteDance","Triller – Amazon"], ans: 2 },
+  { q: "Arzu hanım ….. cümlesinin devamı nedir?", opts: ["Efendim Fıstık tanesi","Efendim Fındık tanesi","Efendim kar tanesi","Kurabiye var simit var"], ans: 0 },
+  { q: "Ağlamaktan ay pardon lensten sözünü kim söylemiştir ?", opts: ["Cemre Solmaz","Buse Korkmaz","Berfinmis","Cağlaca"], ans: 1 },
+  { q: "Selin Ciğerci ve Gökhan Çıra ilişkisinde en çok konuşulan ayrılık sebebi neydi?", opts: ["Futbol transferi","Özel hayat ve güven problemleri iddiaları","TikTok hesabı yönetimi","TV programı anlaşmazlığı"], ans: 1 },
+  // ZOR - 30 PUAN (21-25) 
+  { q: "Ceren Yaldızın emojisi nedir ?", opts: ["Gül","Yaprak","Kar Tanesi","Kurdele"], ans: 2 },
+  { q: "Hangi Tiktokerin çocukları canlı yayında Devlet tarafından alınmıştır ?", opts: ["Karagül","Hülya Mizgin","Dilan Polat","Özlem Öz"], ans: 0 },
+  { q: "Ünlü Tiktokerların bir zaman içinde bulundukları evin adı nedir?", opts: ["Glow House","TikTok House","Fenomen House","Fan House"], ans: 2 },
+  { q: "Semiraminta Tiktok Takipçi Sayısı kaçtır ?", opts: ["10.6 Milyon","8.4 Milyon","11.3 Milyon","12.6 Milyon"], ans: 3 },
+  { q: "Kısmetse Olur’da her gün kavga edip barışan çift hangisidir?", opts: ["Belis-Barış","Keren-Perinaz","Su- Metin","Ayla-Cemal"], ans: 0 },
 ];
 
 let user = null, qIdx = 0, score = 0, correct = 0, wrong = 0;
