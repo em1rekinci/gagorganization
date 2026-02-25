@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException, Depends, Request, Response
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from supabase import create_client, Client
 import os
@@ -10,7 +10,7 @@ from datetime import datetime
 
 load_dotenv()
 
-app = FastAPI(title="BRA Quiz API")
+app = FastAPI(title="GAG Quiz API")
 
 @app.middleware("http")
 async def add_csp_header(request: Request, call_next):
@@ -44,6 +44,10 @@ class SubmitResult(BaseModel):
     correct: int
     wrong: int
 
+class SubmitExtra(BaseModel):
+    email: str
+    extra_score: int
+
 class AdminLogin(BaseModel):
     password: str
 
@@ -57,6 +61,17 @@ def index():
 def admin():
     content = open("admin.html", "r", encoding="utf-8").read()
     return HTMLResponse(content=content)
+
+@app.get("/eksorular")
+def eksorular():
+    content = open("eksorular.html", "r", encoding="utf-8").read()
+    return HTMLResponse(content=content)
+
+@app.get("/logo")
+def logo():
+    if os.path.exists("logo.png"):
+        return FileResponse("logo.png", media_type="image/png")
+    raise HTTPException(status_code=404)
 
 # ===== QUIZ API =====
 @app.post("/api/start")
@@ -105,6 +120,33 @@ def get_my_rank(email: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ===== EK SORULAR =====
+@app.get("/api/check-user")
+def check_user(email: str):
+    try:
+        result = supabase.table("results").select("email").eq("email", email).execute()
+        if not result.data:
+            return {"exists": False, "already_done": False}
+        extra = supabase.table("extra_results").select("email").eq("email", email).execute()
+        return {"exists": True, "already_done": len(extra.data) > 0}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/submit-extra")
+def submit_extra(data: SubmitExtra):
+    try:
+        existing = supabase.table("extra_results").select("*").eq("email", data.email).execute()
+        if existing.data:
+            return {"ok": True, "msg": "Zaten tamamlandı"}
+        supabase.table("extra_results").insert({
+            "email": data.email,
+            "extra_score": data.extra_score,
+            "submitted_at": datetime.utcnow().isoformat()
+        }).execute()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ===== ADMIN =====
 @app.post("/api/admin/login")
 def admin_login(data: AdminLogin):
@@ -121,7 +163,18 @@ def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
 def admin_leaderboard(_=Depends(verify_admin)):
     try:
         results = supabase.table("results").select("*").order("score", desc=True).execute()
-        return {"ok": True, "data": results.data, "total": len(results.data)}
+        extras = supabase.table("extra_results").select("*").execute()
+        extra_map = {e["email"]: e["extra_score"] for e in extras.data}
+        
+        enriched = []
+        for r in results.data:
+            extra = extra_map.get(r["email"])
+            total = r["score"] + (extra or 0)
+            enriched.append({**r, "extra_score": extra, "total_score": total})
+        
+        # toplam puana göre sırala
+        enriched.sort(key=lambda x: x["total_score"], reverse=True)
+        return {"ok": True, "data": enriched, "total": len(enriched)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -148,6 +201,7 @@ def admin_stats(_=Depends(verify_admin)):
 def delete_result(email: str, _=Depends(verify_admin)):
     try:
         supabase.table("results").delete().eq("email", email).execute()
+        supabase.table("extra_results").delete().eq("email", email).execute()
         return {"ok": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

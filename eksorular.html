@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAG Quiz — Ek Sorular</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --surface: #13131a; --card: #1a1a24; --border: #2a2a38;
+    --accent: #ff6b35; --accent2: #ffd23f; --text: #e8e8f0; --muted: #666680;
+    --green: #4ade80; --red: #f87171;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 70% 20%, rgba(255,107,53,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, rgba(255,210,63,0.05) 0%, transparent 40%);
+    pointer-events: none; z-index: 0;
+  }
+  .container { max-width: 640px; margin: 0 auto; padding: 2rem 1.5rem; position: relative; z-index: 1; }
+  .logo-wrap { text-align: center; margin-bottom: 0.5rem; }
+  .logo-wrap img { height: 80px; width: auto; }
+  .tagline { text-align: center; font-size: 1rem; letter-spacing: 4px; color: var(--accent); font-weight: 700; margin-bottom: 0.3rem; }
+  .tagline2 { text-align: center; font-size: 0.75rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3rem; }
+  .screen { display: none; animation: fadeIn 0.35s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; }
+  label { display: block; font-size: 0.75rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.5rem; }
+  input[type="email"] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.85rem 1rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--accent); }
+  .form-group { margin-bottom: 1.2rem; }
+  .btn { width: 100%; padding: 0.9rem; border-radius: 10px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600; transition: all 0.2s; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #ff8c55); color: white; }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,53,0.35); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .error { color: var(--red); font-size: 0.82rem; margin-top: 0.4rem; }
+  .badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 99px; font-size: 0.72rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  .badge-hard { background: rgba(255,107,53,0.15); color: var(--accent); border: 1px solid rgba(255,107,53,0.3); }
+  .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+  .progress-wrap { background: var(--surface); border-radius: 99px; height: 5px; margin-bottom: 0.8rem; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+  .progress-info { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 1.5rem; }
+  .timer-ring-wrap { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
+  .timer-ring-wrap svg { transform: rotate(-90deg); }
+  .timer-track { fill: none; stroke: var(--border); stroke-width: 4; }
+  .timer-fill { fill: none; stroke: var(--accent2); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 126; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
+  .timer-fill.warning { stroke: var(--red); }
+  .timer-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text); }
+  .q-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+  .q-num { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--accent); line-height: 1; flex-shrink: 0; }
+  .q-text { font-size: 1.05rem; font-weight: 500; line-height: 1.55; padding-top: 0.2rem; }
+  .options { display: grid; gap: 0.65rem; }
+  .option { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; cursor: pointer; transition: all 0.18s; display: flex; align-items: center; gap: 0.8rem; font-size: 0.92rem; }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: rgba(255,107,53,0.07); }
+  .option.selected { border-color: var(--accent); background: rgba(255,107,53,0.12); }
+  .option.disabled { pointer-events: none; }
+  .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+  .option.selected .opt-letter { background: var(--accent); color: white; }
+  .info-box { background: rgba(255,210,63,0.08); border: 1px solid rgba(255,210,63,0.25); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.88rem; color: var(--accent2); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo-wrap">
+    <img src="/logo" alt="GAG Organization" />
+  </div>
+  <div class="tagline">TikTok Quiz Night</div>
+  <div class="tagline2">Ek Sorular · Eşitlik Bozucu</div>
+
+  <!-- GİRİŞ -->
+  <div class="screen active" id="screen-login">
+    <div class="info-box">
+      ⚡ Bu sayfa yalnızca admin tarafından yönlendirilen katılımcılar içindir. Quiz'de eşit puan alan katılımcılar bu sorularla sıralanacak.
+    </div>
+    <div class="card">
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;margin-bottom:0.3rem;">E-posta ile Giriş</h2>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.5rem;">Quiz'de kullandığınız e-posta adresinizi girin.</p>
+      <div class="form-group">
+        <label>E-posta</label>
+        <input type="email" id="inp-email" placeholder="ornek@mail.com" />
+        <div class="error" id="err-email"></div>
+      </div>
+      <button class="btn btn-primary" id="btn-login" onclick="handleLogin()">Ek Soruları Başlat →</button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-top">
+      <span class="badge badge-hard">Ek Soru · 10 PT</span>
+      <div class="timer-ring-wrap">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="timer-track" cx="26" cy="26" r="20"/>
+          <circle class="timer-fill" id="timer-circle" cx="26" cy="26" r="20"/>
+        </svg>
+        <div class="timer-num" id="timer-num">10</div>
+      </div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="prog-bar" style="width:10%"></div></div>
+    <div class="progress-info">
+      <span id="prog-text">Ek Soru 1 / 10</span>
+      <span id="score-live">0 Puan</span>
+    </div>
+    <div class="card">
+      <div class="q-header">
+        <div class="q-num" id="q-num">01</div>
+        <div class="q-text" id="q-text"></div>
+      </div>
+      <div class="options" id="opts"></div>
+    </div>
+  </div>
+
+  <!-- SONUÇ -->
+  <div class="screen" id="screen-result">
+    <div class="card" style="text-align:center;padding:3rem 2rem;">
+      <div style="font-size:3.5rem;margin-bottom:1.2rem;">✅</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;margin-bottom:0.8rem;color:var(--text);">Tamamlandı!</div>
+      <div style="font-size:1.05rem;color:var(--muted);line-height:1.7;margin-bottom:2rem;">
+        Ek sorularınız kaydedildi.<br>
+        <span style="color:var(--accent);font-weight:600;">Sonuçlar admin tarafından açıklanacak. 👀</span>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem;display:inline-block;min-width:160px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;" id="res-score">0</div>
+        <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;">Ek Puan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "https://gagorganization.fun";
+
+const EK_SORULAR = [
+  { q: "Halilişko patates yemeyi bıraktıktan sonra hangi yemeği daha çok sevmiştir?", opts: ["Makarna","Tost","Yumurta","Ekmek"], ans: 1 },
+  { q: "Kabede Hacılar Hu Der Allah İlahisiyle Gündeme Gelen Kişi Kimdir ?", opts: ["Caner","Cemal","Cemil","Celal"], ans: 3 },
+  { q: "GAG Organizasyon Tiktok sayfasının en çok izlenen videosu hangisidir?", opts: ["Wegh Hallowen Afiş","Noel Party Afiş","Erkolar Kapatıldı Party Afiş","Big Final2 Party Afiş"], ans: 2 },
+  { q: "Ecrin Su Çobanın son şarkısının adı nedir ?", opts: ["Karma","Masallar Kadar Güzel","Masallar İnan","Pembe Günlüğüm"], ans: 0 },
+  { q: "BerkeJuanın kısa süre önce evlendiği kişi kimdir ?", opts: ["Yaren Alaca","Aysude","Elif Armağan","Beste Kelkit"], ans: 3 },
+  { q: "Fenomen House de Bulanan Taylan Aslen nerelidir ?", opts: ["Türkiye","Kazakistan","Türkmenistan","Afganistan"], ans: 3 },
+  { q: "Dubai’de Türk fenomenlerle ilgili 2026’da yaşanan olay nedir?", opts: ["Ortak bir müzik projesi","Fenomenler arasında kavga görüntülerinin yayılması","Uluslararası ödül töreni","TikTok Shop lansmanı"], ans: 1 },
+  { q: "Erol Yıldırım 'Sen beni her gördüğünde ... olucaksın' demiştir?", opts: ["Üzüleceksin","Ağlaycaksın","Kahrolacaksın","Kıskanacaksın"], ans: 2 },
+  { q: "TikTok hangi yıl global olarak piyasaya sürüldü?", opts: ["2016","2014","2018","2017"], ans: 0 },
+  { q: "Kısmetse Olur ilk sezon şampiyonu Kimdir ?", opts: ["Nur Erkoç ve Batuhan","Cansel Çördük ve Eser","Elif ve Sedat","Ayça ve Emre"], ans: 1 },
+];
+
+let userEmail = null, qIdx = 0, score = 0;
+let answered = false, timer = null, timeLeft = 10;
+const TIMER_MAX = 10;
+const CIRCUMFERENCE = 2 * Math.PI * 20;
+
+async function handleLogin() {
+  const email = document.getElementById('inp-email').value.trim();
+  document.getElementById('err-email').textContent = '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('err-email').textContent = 'Geçerli e-posta girin.';
+    return;
+  }
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = 'Kontrol ediliyor...';
+  try {
+    // Kullanıcının ana quiz'de kayıtlı olup olmadığını kontrol et
+    const res = await fetch(`${API}/api/check-user?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    if (!data.exists) {
+      document.getElementById('err-email').textContent = 'Bu e-posta ana quiz\'de kayıtlı değil.';
+      btn.disabled = false; btn.textContent = 'Ek Soruları Başlat →';
+      return;
+    }
+    if (data.already_done) {
+      document.getElementById('err-email').textContent = 'Bu e-posta ile ek sorular zaten tamamlandı.';
+      btn.disabled = false; btn.textContent = 'Ek Soruları Başlat →';
+      return;
+    }
+    userEmail = email;
+    startQuiz();
+  } catch {
+    document.getElementById('err-email').textContent = 'Sunucuya bağlanılamadı.';
+    btn.disabled = false; btn.textContent = 'Ek Soruları Başlat →';
+  }
+}
+
+function startQuiz() {
+  qIdx = 0; score = 0;
+  showScreen('quiz');
+  renderQ();
+}
+
+function renderQ() {
+  answered = false;
+  const q = EK_SORULAR[qIdx];
+  document.getElementById('q-num').textContent = String(qIdx+1).padStart(2,'0');
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('prog-text').textContent = `Ek Soru ${qIdx+1} / 10`;
+  document.getElementById('score-live').textContent = score + ' Puan';
+  document.getElementById('prog-bar').style.width = ((qIdx/10)*100) + '%';
+
+  const letters = ['A','B','C','D'];
+  const container = document.getElementById('opts');
+  container.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const el = document.createElement('div');
+    el.className = 'option';
+    el.innerHTML = `<div class="opt-letter">${letters[i]}</div><div>${opt}</div>`;
+    el.onclick = () => pick(i, el);
+    container.appendChild(el);
+  });
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timer);
+  timeLeft = TIMER_MAX;
+  updateTimer();
+  timer = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+    if (timeLeft <= 0) { clearInterval(timer); if (!answered) autoFail(); }
+  }, 1000);
+}
+
+function updateTimer() {
+  const pct = timeLeft / TIMER_MAX;
+  const offset = CIRCUMFERENCE * (1 - pct);
+  const circle = document.getElementById('timer-circle');
+  circle.style.strokeDashoffset = offset;
+  circle.className = 'timer-fill' + (timeLeft <= 3 ? ' warning' : '');
+  document.getElementById('timer-num').textContent = timeLeft;
+}
+
+function autoFail() {
+  answered = true;
+  setTimeout(() => nextQ(), 300);
+}
+
+function pick(idx, el) {
+  if (answered) return;
+  answered = true; clearInterval(timer);
+  const opts = document.querySelectorAll('.option');
+  opts.forEach(o => o.classList.add('disabled'));
+  el.classList.add('selected');
+  if (idx === EK_SORULAR[qIdx].ans) score += 10;
+  document.getElementById('score-live').textContent = score + ' Puan';
+  setTimeout(() => nextQ(), 400);
+}
+
+function nextQ() {
+  qIdx++;
+  if (qIdx >= EK_SORULAR.length) finishQuiz();
+  else renderQ();
+}
+
+async function finishQuiz() {
+  clearInterval(timer);
+  try {
+    await fetch(`${API}/api/submit-extra`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email: userEmail, extra_score: score })
+    });
+  } catch {}
+  document.getElementById('res-score').textContent = score;
+  showScreen('result');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+</script>
+</body>
+</html>

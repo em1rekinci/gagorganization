@@ -155,15 +155,16 @@
             <th>#</th>
             <th>Ad Soyad</th>
             <th>E-posta</th>
-            <th>Puan</th>
+            <th>Quiz Puanı</th>
+            <th>Ek Puan</th>
+            <th>Toplam</th>
             <th>Doğru</th>
-            <th>Yanlış</th>
             <th>Tarih</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="lb-body">
-          <tr><td colspan="8" class="loading">Yükleniyor...</td></tr>
+          <tr><td colspan="9" class="loading">Yükleniyor...</td></tr>
         </tbody>
       </table>
     </div>
@@ -216,20 +217,20 @@ async function loadStats() {
 
 async function loadLeaderboard() {
   const tbody = document.getElementById('lb-body');
-  tbody.innerHTML = '<tr><td colspan="8" class="loading">Yükleniyor...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9" class="loading">Yükleniyor...</td></tr>';
   try {
     const res = await fetch(`${API}/api/admin/leaderboard`, { headers: { 'Authorization': `Bearer ${token}` } });
     const data = await res.json();
     allData = data.data || [];
     renderTable(allData);
   } catch {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty">Veri alınamadı.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">Veri alınamadı.</td></tr>';
   }
 }
 
 function renderTable(data) {
   const tbody = document.getElementById('lb-body');
-  if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">Henüz katılımcı yok.</td></tr>'; return; }
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">Henüz katılımcı yok.</td></tr>'; return; }
   const rankColors = ['gold','silver','bronze'];
   tbody.innerHTML = data.map((r, i) => {
     const date = r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('tr-TR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
