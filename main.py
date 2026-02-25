@@ -172,8 +172,8 @@ def admin_leaderboard(_=Depends(verify_admin)):
             total = r["score"] + (extra or 0)
             enriched.append({**r, "extra_score": extra, "total_score": total})
         
-        # toplam puana göre sırala
-        enriched.sort(key=lambda x: x["total_score"], reverse=True)
+        # önce quiz puanı, eşitse toplam puana göre sırala
+        enriched.sort(key=lambda x: (x["score"], x["total_score"]), reverse=True)
         return {"ok": True, "data": enriched, "total": len(enriched)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
