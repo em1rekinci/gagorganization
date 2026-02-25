@@ -234,13 +234,16 @@ function renderTable(data) {
   const rankColors = ['gold','silver','bronze'];
   tbody.innerHTML = data.map((r, i) => {
     const date = r.submitted_at ? new Date(r.submitted_at).toLocaleDateString('tr-TR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    const ekPuan = (r.extra_score != null) ? r.extra_score : '—';
+    const toplam = (r.total_score != null) ? r.total_score : r.score;
     return `<tr>
       <td class="rank-cell ${rankColors[i]||''}">${i+1}</td>
       <td><strong>${escHtml(r.name)}</strong></td>
       <td class="email-cell">${escHtml(r.email)}</td>
       <td class="score-cell">${r.score}</td>
+      <td style="color:var(--accent2);font-weight:700;font-size:1.1rem;">${ekPuan}</td>
+      <td style="color:var(--green);font-family:'Bebas Neue',sans-serif;font-size:1.4rem;">${toplam}</td>
       <td class="correct-cell">${r.correct}</td>
-      <td class="wrong-cell">${r.wrong}</td>
       <td class="date-cell">${date}</td>
       <td><button class="del-btn" onclick="deleteEntry('${escHtml(r.email)}')">Sil</button></td>
     </tr>`;
