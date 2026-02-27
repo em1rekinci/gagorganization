@@ -106,6 +106,41 @@
   .btn-next { margin-top: 1.2rem; display: none; }
   .btn-next.show { display: block; }
 
+  /* BEKLEME EKRANI */
+  .waiting-wrap {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 3rem 1.5rem; text-align: center;
+  }
+  .waiting-icon {
+    font-size: 3.5rem; margin-bottom: 1.2rem;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.7; }
+  }
+  .waiting-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem;
+    letter-spacing: 2px; color: var(--text); margin-bottom: 0.6rem;
+  }
+  .waiting-sub { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+  .waiting-dots::after {
+    content: '';
+    animation: dots 1.4s steps(3, end) infinite;
+  }
+  @keyframes dots {
+    0%   { content: ''; }
+    33%  { content: '.'; }
+    66%  { content: '..'; }
+    100% { content: '...'; }
+  }
+  .answered-badge {
+    display: inline-block; margin-top: 1rem;
+    background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.3);
+    border-radius: 99px; padding: 0.35rem 1rem;
+    color: var(--green); font-size: 0.82rem; font-weight: 600;
+  }
+
   /* RESULT */
   .score-big { font-family: 'Bebas Neue', sans-serif; font-size: 5.5rem; text-align: center; line-height: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .score-sub { text-align: center; color: var(--muted); margin-bottom: 1.5rem; font-size: 0.85rem; }
@@ -178,6 +213,21 @@
     </div>
   </div>
 
+  <!-- BEKLEME -->
+  <div class="screen" id="screen-waiting">
+    <div class="card">
+      <div class="waiting-wrap">
+        <div class="waiting-icon">⏳</div>
+        <div class="waiting-title">Cevabınız Alındı!</div>
+        <div class="waiting-sub">
+          Admin bir sonraki soruyu başlatmayı bekliyor<span class="waiting-dots"></span><br>
+          <span id="waiting-score" style="color:var(--accent);font-weight:700;font-size:1rem;margin-top:0.5rem;display:block;"></span>
+        </div>
+        <div class="answered-badge">✓ Cevaplandı</div>
+      </div>
+    </div>
+  </div>
+
   <!-- SONUÇ -->
   <div class="screen" id="screen-result">
     <div class="card" style="text-align:center;padding:3rem 2rem;">
@@ -195,8 +245,17 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const API = "https://gagorganization.fun";
+
+// =============================================
+// SUPABASE YAPILANDIRMASI — kendi bilgilerinle değiştir
+// =============================================
+const SUPABASE_URL = "https://rwognafwhzzynoamswpm.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b2duYWZ3aHp6eW5vYW1zd3BtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE2NjksImV4cCI6MjA4NzQ0NzY2OX0.q6j5gyvcwGWWzOSyHZUv9llhwONRd3ppzvrsjFRLRow";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// =============================================
 
 const QUESTIONS = [
   // KOLAY - 10 PUAN (1-10)
@@ -231,12 +290,62 @@ const QUESTIONS = [
 
 let user = null, qIdx = 0, score = 0, correct = 0, wrong = 0;
 let answered = false, selectedIdx = null;
+let realtimeChannel = null;
 
 function pts(i) { return i < 10 ? 10 : i < 20 ? 20 : 30; }
 function badge(i) {
   if (i < 10) return ['badge-easy','Kolay · 10 PT'];
   if (i < 20) return ['badge-medium','Orta · 20 PT'];
   return ['badge-hard','Zor · 30 PT'];
+}
+
+// Supabase'den mevcut soru numarasını çek
+async function fetchCurrentQuestion() {
+  const { data, error } = await supabaseClient
+    .from('quiz_state')
+    .select('current_question, is_active')
+    .eq('id', 1)
+    .single();
+  if (error) { console.error('Supabase fetch error:', error); return null; }
+  return data;
+}
+
+// Supabase Realtime aboneliği başlat
+function subscribeToQuizState() {
+  if (realtimeChannel) {
+    supabaseClient.removeChannel(realtimeChannel);
+  }
+  realtimeChannel = supabaseClient
+    .channel('quiz_state_changes')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'quiz_state',
+      filter: 'id=eq.1'
+    }, (payload) => {
+      const newQ = payload.new.current_question;
+      const isActive = payload.new.is_active;
+      
+      if (!isActive) {
+        // Quiz bitti — sonuç ekranına git
+        submitAndFinish();
+        return;
+      }
+      
+      // Yeni soru geldi
+      if (newQ !== qIdx) {
+        qIdx = newQ;
+        if (qIdx >= QUESTIONS.length) {
+          submitAndFinish();
+        } else {
+          answered = false;
+          selectedIdx = null;
+          showScreen('quiz');
+          renderQ();
+        }
+      }
+    })
+    .subscribe();
 }
 
 async function handleLogin() {
@@ -259,6 +368,13 @@ async function handleLogin() {
     });
     if (!res.ok) throw new Error();
     user = { email, name };
+    
+    // Supabase'den mevcut durumu al
+    const state = await fetchCurrentQuestion();
+    if (state) {
+      qIdx = state.current_question || 0;
+    }
+    
     startQuiz();
   } catch {
     document.getElementById('err-email').textContent = 'Sunucuya bağlanılamadı. API adresini kontrol edin.';
@@ -267,7 +383,8 @@ async function handleLogin() {
 }
 
 function startQuiz() {
-  qIdx = 0; score = 0; correct = 0; wrong = 0;
+  score = 0; correct = 0; wrong = 0;
+  subscribeToQuizState();
   showScreen('quiz');
   renderQ();
 }
@@ -283,7 +400,6 @@ function renderQ() {
   document.getElementById('prog-text').textContent = `Soru ${qIdx+1} / 25`;
   document.getElementById('score-live').textContent = score + ' Puan';
   document.getElementById('prog-bar').style.width = ((qIdx/25)*100) + '%';
-  // btn-next yok
 
   const letters = ['A','B','C','D'];
   const container = document.getElementById('opts');
@@ -322,12 +438,16 @@ function confirmPick() {
 }
 
 function nextQ() {
-  qIdx++;
-  if (qIdx >= QUESTIONS.length) finishQuiz();
-  else renderQ();
+  if (!answered) return;
+  // Bekleme ekranına geç — admin sonraki soruyu başlatana kadar bekle
+  document.getElementById('waiting-score').textContent = 'Anlık puanınız: ' + score;
+  showScreen('waiting');
 }
 
-async function finishQuiz() {
+async function submitAndFinish() {
+  if (realtimeChannel) {
+    supabaseClient.removeChannel(realtimeChannel);
+  }
   try {
     await fetch(`${API}/api/submit`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
@@ -339,6 +459,10 @@ async function finishQuiz() {
   } catch {
     showResult(null, null);
   }
+}
+
+async function finishQuiz() {
+  await submitAndFinish();
 }
 
 function showResult(rank, total) {

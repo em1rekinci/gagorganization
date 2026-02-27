@@ -101,6 +101,71 @@
   /* EXPORT */
   .export-btn { background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.25); border-radius: 8px; padding: 0.45rem 1rem; color: var(--blue); font-size: 0.82rem; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 500; transition: all 0.2s; }
   .export-btn:hover { background: rgba(96,165,250,0.18); }
+
+  /* SEKMELER */
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab-btn {
+    background: none; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer; padding: 0.7rem 1.2rem;
+    border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn:hover:not(.active) { color: var(--text); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* CANLI KONTROL */
+  .live-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 2rem; margin-bottom: 1.5rem;
+  }
+  .live-q-num {
+    font-family: 'Bebas Neue', sans-serif; font-size: 5rem; line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 0.3rem;
+  }
+  .live-q-text { font-size: 1.05rem; font-weight: 500; line-height: 1.55; color: var(--text); margin-bottom: 1.5rem; }
+  .live-q-opts { display: grid; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .live-q-opt {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.6rem 0.9rem; font-size: 0.88rem; color: var(--muted);
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .live-q-opt .opt-ltr {
+    width: 24px; height: 24px; border-radius: 50%; background: var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+  }
+  .live-q-opt.correct-opt { border-color: var(--green); }
+  .live-q-opt.correct-opt .opt-ltr { background: var(--green); color: white; }
+
+  .waiting-count-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1rem 1.4rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .waiting-count-num { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--accent2); line-height: 1; }
+  .waiting-count-lbl { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; }
+
+  .btn-next-q {
+    width: 100%; padding: 1rem; border-radius: 12px; border: none; cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--accent), #ff8c55); color: white;
+    transition: all 0.2s;
+  }
+  .btn-next-q:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,107,53,0.4); }
+  .btn-next-q:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-finish-q {
+    width: 100%; padding: 0.85rem; border-radius: 12px; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+    background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3);
+    color: var(--red); transition: all 0.2s; margin-top: 0.75rem;
+  }
+  .btn-finish-q:hover:not(:disabled) { background: rgba(248,113,113,0.2); }
+  .live-progress { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 0.5rem; }
+  .live-badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 99px; font-size: 0.72rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.75rem; }
+  .live-status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 0.4rem; animation: blink 1.2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 </style>
 </head>
 <body>
@@ -126,55 +191,142 @@
     <button class="logout-btn" onclick="logout()">Çıkış Yap</button>
   </div>
   <div class="main">
-    <!-- İSTATİSTİKLER -->
-    <div class="stats-grid" id="stats-grid">
-      <div class="stat-card"><div class="stat-val" id="s-total" style="color:var(--blue)">—</div><div class="stat-lbl">Toplam Katılımcı</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-completed" style="color:var(--green)">—</div><div class="stat-lbl">Tamamlayan</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-avg" style="color:var(--accent2)">—</div><div class="stat-lbl">Ort. Puan</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-max" style="color:var(--accent)">—</div><div class="stat-lbl">En Yüksek Puan</div></div>
-      <div class="stat-card"><div class="stat-val" id="s-correct" style="color:var(--green)">—</div><div class="stat-lbl">Ort. Doğru</div></div>
+
+    <!-- SEKMELER -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-leaderboard', this)">📊 Sıralama</button>
+      <button class="tab-btn" onclick="switchTab('tab-live', this)">🎮 Canlı Kontrol</button>
     </div>
 
-    <!-- TABLO -->
-    <div class="table-header">
-      <div class="section-title">Sıralama Tablosu</div>
-      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;">
-        <div class="search-wrap">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="search-inp" placeholder="İsim veya e-posta..." oninput="filterTable()" />
+    <!-- SIRALAMА SEKMESİ -->
+    <div class="tab-panel active" id="tab-leaderboard">
+      <!-- İSTATİSTİKLER -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="s-total" style="color:var(--blue)">—</div><div class="stat-lbl">Toplam Katılımcı</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-completed" style="color:var(--green)">—</div><div class="stat-lbl">Tamamlayan</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-avg" style="color:var(--accent2)">—</div><div class="stat-lbl">Ort. Puan</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-max" style="color:var(--accent)">—</div><div class="stat-lbl">En Yüksek Puan</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-correct" style="color:var(--green)">—</div><div class="stat-lbl">Ort. Doğru</div></div>
+      </div>
+
+      <!-- TABLO -->
+      <div class="table-header">
+        <div class="section-title">Sıralama Tablosu</div>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-inp" placeholder="İsim veya e-posta..." oninput="filterTable()" />
+          </div>
+          <button class="export-btn" onclick="exportCSV()">📥 CSV İndir</button>
+          <button class="refresh-btn" onclick="loadData()">↻ Yenile</button>
         </div>
-        <button class="export-btn" onclick="exportCSV()">📥 CSV İndir</button>
-        <button class="refresh-btn" onclick="loadData()">↻ Yenile</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Ad Soyad</th>
+              <th>E-posta</th>
+              <th>Quiz Puanı</th>
+              <th>Ek Puan</th>
+              <th>Toplam</th>
+              <th>Doğru</th>
+              <th>Tarih</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="lb-body">
+            <tr><td colspan="9" class="loading">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Ad Soyad</th>
-            <th>E-posta</th>
-            <th>Quiz Puanı</th>
-            <th>Ek Puan</th>
-            <th>Toplam</th>
-            <th>Doğru</th>
-            <th>Tarih</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="lb-body">
-          <tr><td colspan="9" class="loading">Yükleniyor...</td></tr>
-        </tbody>
-      </table>
+    <!-- CANLI KONTROL SEKMESİ -->
+    <div class="tab-panel" id="tab-live">
+      <div class="live-card">
+        <div style="display:flex;align-items:center;margin-bottom:1.2rem;">
+          <span class="live-status-dot"></span>
+          <span style="font-size:0.82rem;color:var(--green);font-weight:600;">CANLI YARıŞMA</span>
+          <span style="margin-left:auto;color:var(--muted);font-size:0.8rem;" id="live-q-counter">— / 25</span>
+        </div>
+
+        <div class="live-progress">
+          <span id="live-prog-txt">Soru 1 / 25</span>
+          <span id="live-badge-txt" class="live-badge badge-easy">Kolay · 10 PT</span>
+        </div>
+
+        <div id="live-q-num" class="live-q-num">01</div>
+        <div id="live-q-text" class="live-q-text">Soru burada görünecek...</div>
+        <div class="live-q-opts" id="live-q-opts"></div>
+
+        <div class="waiting-count-box">
+          <div>
+            <div class="waiting-count-num" id="waiting-count">—</div>
+            <div class="waiting-count-lbl">katılımcı bekleniyor</div>
+          </div>
+          <div style="margin-left:auto;color:var(--muted);font-size:0.78rem;" id="waiting-refresh-hint">Her 5 saniyede güncellenir</div>
+        </div>
+
+        <button class="btn-next-q" id="btn-next-q" onclick="adminNextQuestion()">
+          SONRAKİ SORU →
+        </button>
+        <button class="btn-finish-q" id="btn-finish-q" onclick="adminFinishQuiz()">
+          Yarışmayı Bitir
+        </button>
+      </div>
     </div>
+
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const API = "https://gagorganization.fun";
+
+// =============================================
+// SUPABASE YAPILANDIRMASI — kendi bilgilerinle değiştir
+// =============================================
+const SUPABASE_URL = "https://rwognafwhzzynoamswpm.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b2duYWZ3aHp6eW5vYW1zd3BtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE2NjksImV4cCI6MjA4NzQ0NzY2OX0.q6j5gyvcwGWWzOSyHZUv9llhwONRd3ppzvrsjFRLRow";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// =============================================
+
+// Aynı sorular (sıralama için)
+const QUESTIONS = [
+  { q: "Özge nişanda oynayacak yer bulamazken ortada oynayan kişi kimdir ?", opts: ["Annesi","Kardeşi","Eren","Eltisi"], ans: 3 },
+  { q: "Derin Talu annesi tatilde olduğu için ne içememiştir?", opts: ["Latte","Milkshake","Matcha","Çay"], ans: 2 },
+  { q: "Aşağıdakiler hangisi YağızJr nin eski sevgilisi değildir?", opts: ["Berfinmis","Özüm Altın","Sudenaz Bulut","Beyza Aksoy"], ans: 3 },
+  { q: "TikTok'un Çin'de kullanılan orijinal versiyonunun adı nedir?", opts: ["Douyin","WeChat","Kwai","ClipGo"], ans: 0 },
+  { q: "Göbek dansı videolarıyla dünya çapında viral olan TikTok fenomeni kimdir?", opts: ["Özdemirkol","Torlak","Yasin Cengiz","Onur Sermik"], ans: 2 },
+  { q: "2026'da en çok takipçili TikTok fenomeni kimdir?", opts: ["Charli D'Amelio","Khaby Lame","Zach King","Addison Rae"], ans: 1 },
+  { q: "Aşagıdakiler hangisi MEF'in Ev Arkadaşıydı ?", opts: ["Batuhan Yılmaz","Serdar Ortaç","Onur Sermik","Özdemirkol"], ans: 0 },
+  { q: "Cellat36 nın Tam ismi nedir ?", opts: ["Mehmet Deniz Cellat","Özgür Deniz Cellat","Ömer Deniz Cellat","Ozan Deniz Cellat"], ans: 1 },
+  { q: "Hülya Mizgin'in çocuklarının adı nedir?", opts: ["Abdi ve Hira","Abdur ve Hera","Ayan ve Mira","Abdu ve Lara"], ans: 0 },
+  { q: "Cansum Tatlı'nın Kocasının Adı nedir ?", opts: ["Karabey","Yusufcan Öcal","Sinan Kaya","Batuhan Çelik"], ans: 2 },
+  { q: "Teslo Taylan aşağıdakilerden hangi kişiye ev ziyareti yapmamıştır?", opts: ["Ankaralı Batman","Medine","Yakışıklı güvenlik","Güven Demir"], ans: 2 },
+  { q: "Kış Kızı'nın eşinin adı nedir?", opts: ["Hasan","Murat","Mehmet","Hüseyin"], ans: 0 },
+  { q: "Kadın kadın … en güzel kadını diyen Mükremin gergin hangi yılın en güzel kadınıdır?", opts: ["2021","2023","2025","2024"], ans: 2 },
+  { q: "Kış kızının kardeşi Rabia'nın mesleği nedir?", opts: ["Aşçı","Ev Hanımı","Öğrenci","Başhekim "], ans: 3 },
+  { q: "Çoğu TikTok içerik üreticisinin video çektiği duvar hangi AVM'dedir?", opts: ["Marmarapark AVM","ANKAMALL","Optimum AVM","Cevahir AVM"], ans: 3 },
+  { q: "Etkileşim için çocuk yapıyor denilen ve hamileliğiyle gündeme düşen Tiktoker Kimdir ?", opts: ["Dilan Polat","Özlem Öz","Ceren Yaldız","Hülya Mizgin"], ans: 1 },
+  { q: "TikTok'un ilk kurulduğu dönemdeki adı neydi ve hangi şirket tarafından satın alındı?", opts: ["Vine – Meta","Dubsmash – Google","Musical.ly – ByteDance","Triller – Amazon"], ans: 2 },
+  { q: "Arzu hanım ….. cümlesinin devamı nedir?", opts: ["Efendim Fıstık tanesi","Efendim Fındık tanesi","Efendim kar tanesi","Kurabiye var simit var"], ans: 0 },
+  { q: "Ağlamaktan ay pardon lensten sözünü kim söylemiştir ?", opts: ["Cemre Solmaz","Buse Korkmaz","Berfinmis","Cağlaca"], ans: 1 },
+  { q: "Selin Ciğerci ve Gökhan Çıra ilişkisinde en çok konuşulan ayrılık sebebi neydi?", opts: ["Futbol transferi","Özel hayat ve güven problemleri iddiaları","TikTok hesabı yönetimi","TV programı anlaşmazlığı"], ans: 1 },
+  { q: "Ceren Yaldızın emojisi nedir ?", opts: ["Gül","Yaprak","Kar Tanesi","Kurdele"], ans: 2 },
+  { q: "Hangi Tiktokerin çocukları canlı yayında Devlet tarafından alınmıştır ?", opts: ["Karagül","Hülya Mizgin","Dilan Polat","Özlem Öz"], ans: 0 },
+  { q: "Ünlü Tiktokerların bir zaman içinde bulundukları evin adı nedir?", opts: ["Glow House","TikTok House","Fenomen House","Fan House"], ans: 2 },
+  { q: "Semiraminta Tiktok Takipçi Sayısı kaçtır ?", opts: ["10.6 Milyon","8.4 Milyon","11.3 Milyon","12.6 Milyon"], ans: 3 },
+  { q: "Kısmetse Olur'da her gün kavga edip barışan çift hangisidir?", opts: ["Belis-Barış","Keren-Perinaz","Su- Metin","Ayla-Cemal"], ans: 0 },
+];
+
 let token = null;
 let allData = [];
+let liveCurrentQ = 0;
+let waitingCountInterval = null;
 
 async function doLogin() {
   const pass = document.getElementById('pass-input').value;
@@ -193,10 +345,136 @@ async function doLogin() {
     document.getElementById('login-panel').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
     loadData();
+    initLiveControl();
   } catch {
     document.getElementById('login-err').textContent = 'Şifre yanlış veya sunucuya bağlanılamadı.';
     btn.disabled = false; btn.textContent = 'Giriş Yap';
   }
+}
+
+// =============================================
+// SEKME FONKSİYONLARI
+// =============================================
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+}
+
+// =============================================
+// CANLI KONTROL
+// =============================================
+async function initLiveControl() {
+  // Supabase'den mevcut durumu al
+  const { data, error } = await supabaseClient
+    .from('quiz_state')
+    .select('current_question, is_active')
+    .eq('id', 1)
+    .single();
+
+  if (error) {
+    // Eğer kayıt yoksa oluştur
+    await supabaseClient.from('quiz_state').upsert({ id: 1, current_question: 0, is_active: true });
+    liveCurrentQ = 0;
+  } else {
+    liveCurrentQ = data.current_question || 0;
+  }
+
+  renderLiveQuestion();
+  startWaitingCountPoll();
+}
+
+function renderLiveQuestion() {
+  if (liveCurrentQ >= QUESTIONS.length) {
+    document.getElementById('live-q-num').textContent = '✓';
+    document.getElementById('live-q-text').textContent = 'Yarışma tamamlandı!';
+    document.getElementById('live-q-opts').innerHTML = '';
+    document.getElementById('btn-next-q').disabled = true;
+    document.getElementById('live-q-counter').textContent = '25 / 25';
+    document.getElementById('live-prog-txt').textContent = 'Tamamlandı';
+    return;
+  }
+
+  const q = QUESTIONS[liveCurrentQ];
+  const letters = ['A','B','C','D'];
+  const badges = liveCurrentQ < 10 ? ['badge-easy','Kolay · 10 PT'] : liveCurrentQ < 20 ? ['badge-medium','Orta · 20 PT'] : ['badge-hard','Zor · 30 PT'];
+
+  document.getElementById('live-q-num').textContent = String(liveCurrentQ+1).padStart(2,'0');
+  document.getElementById('live-q-text').textContent = q.q;
+  document.getElementById('live-q-counter').textContent = `${liveCurrentQ+1} / 25`;
+  document.getElementById('live-prog-txt').textContent = `Soru ${liveCurrentQ+1} / 25`;
+
+  const badgeEl = document.getElementById('live-badge-txt');
+  badgeEl.className = 'live-badge ' + badges[0];
+  badgeEl.textContent = badges[1];
+
+  const optsContainer = document.getElementById('live-q-opts');
+  optsContainer.innerHTML = q.opts.map((opt, i) =>
+    `<div class="live-q-opt ${i === q.ans ? 'correct-opt' : ''}">
+      <div class="opt-ltr">${letters[i]}</div>
+      <div style="color:${i === q.ans ? 'var(--green)' : 'var(--muted)'};">${opt}</div>
+      ${i === q.ans ? '<span style="margin-left:auto;color:var(--green);font-size:0.75rem;font-weight:700;">✓ DOĞRU</span>' : ''}
+    </div>`
+  ).join('');
+
+  document.getElementById('btn-next-q').disabled = false;
+  document.getElementById('btn-next-q').textContent = liveCurrentQ < QUESTIONS.length - 1 ? 'SONRAKİ SORU →' : 'QUIZ\'İ BİTİR →';
+}
+
+async function adminNextQuestion() {
+  const btn = document.getElementById('btn-next-q');
+  btn.disabled = true;
+
+  const nextQ = liveCurrentQ + 1;
+  const isLast = nextQ >= QUESTIONS.length;
+
+  const { error } = await supabaseClient
+    .from('quiz_state')
+    .update({ current_question: isLast ? QUESTIONS.length : nextQ, is_active: !isLast })
+    .eq('id', 1);
+
+  if (error) {
+    alert('Supabase güncelleme hatası: ' + error.message);
+    btn.disabled = false;
+    return;
+  }
+
+  if (isLast) {
+    liveCurrentQ = QUESTIONS.length;
+    renderLiveQuestion();
+    clearInterval(waitingCountInterval);
+  } else {
+    liveCurrentQ = nextQ;
+    renderLiveQuestion();
+  }
+}
+
+async function adminFinishQuiz() {
+  if (!confirm('Yarışmayı bitirmek istediğinizden emin misiniz? Tüm katılımcılar sonuç ekranına geçecek.')) return;
+  await supabaseClient.from('quiz_state').update({ is_active: false, current_question: QUESTIONS.length }).eq('id', 1);
+  clearInterval(waitingCountInterval);
+  alert('Yarışma bitirildi!');
+}
+
+async function fetchWaitingCount() {
+  // Bekleme ekranındaki kişi sayısı — API'den al (bu endpoint'i backend'de eklemeniz gerekebilir)
+  // Şimdilik basit bir polling: /api/waiting-count
+  try {
+    const res = await fetch(`${API}/api/waiting-count?q=${liveCurrentQ}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    document.getElementById('waiting-count').textContent = data.count ?? '?';
+  } catch {
+    // Sessizce geç
+  }
+}
+
+function startWaitingCountPoll() {
+  fetchWaitingCount();
+  waitingCountInterval = setInterval(fetchWaitingCount, 5000);
 }
 
 async function loadData() {
@@ -285,6 +563,7 @@ function exportCSV() {
 
 function logout() {
   token = null; allData = [];
+  clearInterval(waitingCountInterval);
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('login-panel').style.display = 'flex';
   document.getElementById('pass-input').value = '';
