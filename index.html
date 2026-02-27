@@ -108,8 +108,8 @@
   .option.selected .opt-letter { background: var(--accent); color: white; }
   .option.correct .opt-letter { background: var(--green); color: white; }
   .option.wrong .opt-letter { background: var(--red); color: white; }
-  .btn-next { margin-top: 1rem; display: none; }
-  .btn-next.show { display: block !important; }
+  .btn-next { margin-top: 1.2rem; display: none; }
+  .btn-next.show { display: block; }
 
   /* RESULT */
   .score-big { font-family: 'Bebas Neue', sans-serif; font-size: 5.5rem; text-align: center; line-height: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -179,8 +179,8 @@
         <div class="q-text" id="q-text"></div>
       </div>
       <div class="options" id="opts"></div>
-      <div id="timeout-msg" style="display:none;text-align:center;padding:1rem;color:var(--muted);font-size:0.95rem;">⏰ Süre doldu!</div>
-      <button class="btn btn-primary btn-next" id="btn-next" onclick="nextQ()" style="margin-top:1rem;display:none;">Devam Et →</button>
+      <div id="timeout-msg" style="display:none;text-align:center;padding:1.2rem 0 0.5rem;color:var(--muted);font-size:1rem;">⏰ Süre doldu!</div>
+      <button id="btn-next" onclick="nextQ()" style="display:none;width:100%;margin-top:1rem;padding:0.9rem;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;background:linear-gradient(135deg,#ff6b35,#ff8c55);color:white;">Devam Et →</button>
     </div>
   </div>
 
@@ -236,8 +236,8 @@ const QUESTIONS = [
 ];
 
 let user = null, qIdx = 0, score = 0, correct = 0, wrong = 0;
-let answered = false, timer = null, timeLeft = 15;
-const TIMER_MAX = 15;
+let answered = false, timer = null, timeLeft = 10;
+const TIMER_MAX = 10;
 const CIRCUMFERENCE = 2 * Math.PI * 20; // r=20
 
 function pts(i) { return i < 10 ? 10 : i < 20 ? 20 : 30; }
@@ -282,10 +282,16 @@ function startQuiz() {
 
 function renderQ() {
   answered = false;
-  // reset görünürlük
-  document.querySelector('.q-header').style.display = '';
-  document.getElementById('opts').style.display = '';
-  document.getElementById('timeout-msg').style.display = 'none';
+  clearInterval(timer);
+  // her sorudan önce sıfırla
+  const qh = document.querySelector('.q-header');
+  const optsDiv = document.getElementById('opts');
+  const tmsg = document.getElementById('timeout-msg');
+  const btnNext = document.getElementById('btn-next');
+  if (qh) qh.style.display = '';
+  if (optsDiv) optsDiv.style.display = '';
+  if (tmsg) tmsg.style.display = 'none';
+  if (btnNext) btnNext.style.display = 'none';
   const q = QUESTIONS[qIdx];
   const [bcls, btxt] = badge(qIdx);
   document.getElementById('q-badge').className = 'badge ' + bcls;
@@ -333,16 +339,17 @@ function updateTimer() {
 
 function autoFail() {
   answered = true; wrong++;
-  // süre bitti - soruyu gizle, devam et butonunu göster
+  clearInterval(timer);
   document.querySelector('.q-header').style.display = 'none';
   document.getElementById('opts').style.display = 'none';
   document.getElementById('timeout-msg').style.display = 'block';
-  document.getElementById('btn-next').classList.add('show');
+  document.getElementById('btn-next').style.display = 'block';
 }
 
 function pick(idx, el) {
   if (answered) return;
-  answered = true; clearInterval(timer);
+  answered = true;
+  clearInterval(timer);
   const opts = document.querySelectorAll('.option');
   opts.forEach(o => o.classList.add('disabled'));
   el.classList.add('selected');
@@ -352,7 +359,7 @@ function pick(idx, el) {
     wrong++;
   }
   document.getElementById('score-live').textContent = score + ' Puan';
-  document.getElementById('btn-next').classList.add('show');
+  document.getElementById('btn-next').style.display = 'block';
 }
 
 function nextQ() {
