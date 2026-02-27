@@ -113,8 +113,6 @@
         <div class="q-text" id="q-text"></div>
       </div>
       <div class="options" id="opts"></div>
-      <div id="timeout-msg" style="display:none;text-align:center;padding:1.2rem 0 0.5rem;color:var(--muted);font-size:1rem;">⏰ Süre doldu!</div>
-      <button id="btn-next" onclick="nextQ()" style="display:none;width:100%;margin-top:1rem;padding:0.9rem;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;background:linear-gradient(135deg,#ff6b35,#ff8c55);color:white;">Devam Et →</button>
     </div>
   </div>
 
@@ -195,15 +193,6 @@ function startQuiz() {
 
 function renderQ() {
   answered = false;
-  clearInterval(timer);
-  const qh = document.querySelector('.q-header');
-  const optsDiv = document.getElementById('opts');
-  const tmsg = document.getElementById('timeout-msg');
-  const btnNext = document.getElementById('btn-next');
-  if (qh) qh.style.display = '';
-  if (optsDiv) optsDiv.style.display = '';
-  if (tmsg) tmsg.style.display = 'none';
-  if (btnNext) btnNext.style.display = 'none';
   const q = EK_SORULAR[qIdx];
   document.getElementById('q-num').textContent = String(qIdx+1).padStart(2,'0');
   document.getElementById('q-text').textContent = q.q;
@@ -246,23 +235,18 @@ function updateTimer() {
 
 function autoFail() {
   answered = true;
-  clearInterval(timer);
-  document.querySelector('.q-header').style.display = 'none';
-  document.getElementById('opts').style.display = 'none';
-  document.getElementById('timeout-msg').style.display = 'block';
-  document.getElementById('btn-next').style.display = 'block';
+  setTimeout(() => nextQ(), 300);
 }
 
 function pick(idx, el) {
   if (answered) return;
-  answered = true;
-  clearInterval(timer);
+  answered = true; clearInterval(timer);
   const opts = document.querySelectorAll('.option');
   opts.forEach(o => o.classList.add('disabled'));
   el.classList.add('selected');
   if (idx === EK_SORULAR[qIdx].ans) score += 10;
   document.getElementById('score-live').textContent = score + ' Puan';
-  document.getElementById('btn-next').style.display = 'block';
+  setTimeout(() => nextQ(), 400);
 }
 
 function nextQ() {

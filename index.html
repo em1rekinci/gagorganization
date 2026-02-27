@@ -81,12 +81,7 @@
   .progress-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
   .progress-info { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 1.5rem; }
 
-  .timer-ring-wrap { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
-  .timer-ring-wrap svg { transform: rotate(-90deg); }
-  .timer-track { fill: none; stroke: var(--border); stroke-width: 4; }
-  .timer-fill { fill: none; stroke: var(--accent2); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 126; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
-  .timer-fill.warning { stroke: var(--red); }
-  .timer-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--text); }
+  .timer-ring-wrap { display: none; }
 
   .q-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
   .q-num { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--accent); line-height: 1; flex-shrink: 0; }
@@ -179,8 +174,7 @@
         <div class="q-text" id="q-text"></div>
       </div>
       <div class="options" id="opts"></div>
-      <div id="timeout-msg" style="display:none;text-align:center;padding:1.2rem 0 0.5rem;color:var(--muted);font-size:1rem;">⏰ Süre doldu!</div>
-      <button id="btn-next" onclick="nextQ()" style="display:none;width:100%;margin-top:1rem;padding:0.9rem;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;background:linear-gradient(135deg,#ff6b35,#ff8c55);color:white;">Devam Et →</button>
+      <button class="btn btn-primary btn-next" id="btn-next" onclick="nextQ()">Devam Et →</button>
     </div>
   </div>
 
@@ -236,9 +230,7 @@ const QUESTIONS = [
 ];
 
 let user = null, qIdx = 0, score = 0, correct = 0, wrong = 0;
-let answered = false, timer = null, timeLeft = 10;
-const TIMER_MAX = 10;
-const CIRCUMFERENCE = 2 * Math.PI * 20; // r=20
+let answered = false;
 
 function pts(i) { return i < 10 ? 10 : i < 20 ? 20 : 30; }
 function badge(i) {
@@ -282,16 +274,6 @@ function startQuiz() {
 
 function renderQ() {
   answered = false;
-  clearInterval(timer);
-  // her sorudan önce sıfırla
-  const qh = document.querySelector('.q-header');
-  const optsDiv = document.getElementById('opts');
-  const tmsg = document.getElementById('timeout-msg');
-  const btnNext = document.getElementById('btn-next');
-  if (qh) qh.style.display = '';
-  if (optsDiv) optsDiv.style.display = '';
-  if (tmsg) tmsg.style.display = 'none';
-  if (btnNext) btnNext.style.display = 'none';
   const q = QUESTIONS[qIdx];
   const [bcls, btxt] = badge(qIdx);
   document.getElementById('q-badge').className = 'badge ' + bcls;
@@ -314,42 +296,12 @@ function renderQ() {
     container.appendChild(el);
   });
 
-  startTimer();
-}
-
-function startTimer() {
-  clearInterval(timer);
-  timeLeft = TIMER_MAX;
-  updateTimer();
-  timer = setInterval(() => {
-    timeLeft--;
-    updateTimer();
-    if (timeLeft <= 0) { clearInterval(timer); if (!answered) autoFail(); }
-  }, 1000);
-}
-
-function updateTimer() {
-  const pct = timeLeft / TIMER_MAX;
-  const offset = CIRCUMFERENCE * (1 - pct);
-  const circle = document.getElementById('timer-circle');
-  circle.style.strokeDashoffset = offset;
-  circle.className = 'timer-fill' + (timeLeft <= 3 ? ' warning' : '');
-  document.getElementById('timer-num').textContent = timeLeft;
-}
-
-function autoFail() {
-  answered = true; wrong++;
-  clearInterval(timer);
-  document.querySelector('.q-header').style.display = 'none';
-  document.getElementById('opts').style.display = 'none';
-  document.getElementById('timeout-msg').style.display = 'block';
-  document.getElementById('btn-next').style.display = 'block';
+  document.getElementById('btn-next').classList.remove('show');
 }
 
 function pick(idx, el) {
   if (answered) return;
   answered = true;
-  clearInterval(timer);
   const opts = document.querySelectorAll('.option');
   opts.forEach(o => o.classList.add('disabled'));
   el.classList.add('selected');
@@ -359,7 +311,7 @@ function pick(idx, el) {
     wrong++;
   }
   document.getElementById('score-live').textContent = score + ' Puan';
-  document.getElementById('btn-next').style.display = 'block';
+  document.getElementById('btn-next').classList.add('show');
 }
 
 function nextQ() {
@@ -369,7 +321,6 @@ function nextQ() {
 }
 
 async function finishQuiz() {
-  clearInterval(timer);
   try {
     await fetch(`${API}/api/submit`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
