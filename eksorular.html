@@ -113,6 +113,8 @@
         <div class="q-text" id="q-text"></div>
       </div>
       <div class="options" id="opts"></div>
+      <div id="timeout-msg" style="display:none;text-align:center;padding:1rem;color:var(--muted);font-size:0.95rem;">⏰ Süre doldu!</div>
+      <button id="btn-next" onclick="nextQ()" style="display:none;width:100%;margin-top:1rem;padding:0.9rem;border-radius:10px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;background:linear-gradient(135deg,#ff6b35,#ff8c55);color:white;">Devam Et →</button>
     </div>
   </div>
 
@@ -150,8 +152,8 @@ const EK_SORULAR = [
 ];
 
 let userEmail = null, qIdx = 0, score = 0;
-let answered = false, timer = null, timeLeft = 10;
-const TIMER_MAX = 10;
+let answered = false, timer = null, timeLeft = 15;
+const TIMER_MAX = 15;
 const CIRCUMFERENCE = 2 * Math.PI * 20;
 
 async function handleLogin() {
@@ -193,6 +195,10 @@ function startQuiz() {
 
 function renderQ() {
   answered = false;
+  document.querySelector('.q-header').style.display = '';
+  document.getElementById('opts').style.display = '';
+  document.getElementById('timeout-msg').style.display = 'none';
+  document.getElementById('btn-next').style.display = 'none';
   const q = EK_SORULAR[qIdx];
   document.getElementById('q-num').textContent = String(qIdx+1).padStart(2,'0');
   document.getElementById('q-text').textContent = q.q;
@@ -235,7 +241,10 @@ function updateTimer() {
 
 function autoFail() {
   answered = true;
-  setTimeout(() => nextQ(), 300);
+  document.querySelector('.q-header').style.display = 'none';
+  document.getElementById('opts').style.display = 'none';
+  document.getElementById('timeout-msg').style.display = 'block';
+  document.getElementById('btn-next').style.display = 'block';
 }
 
 function pick(idx, el) {
@@ -246,7 +255,7 @@ function pick(idx, el) {
   el.classList.add('selected');
   if (idx === EK_SORULAR[qIdx].ans) score += 10;
   document.getElementById('score-live').textContent = score + ' Puan';
-  setTimeout(() => nextQ(), 400);
+  document.getElementById('btn-next').style.display = 'block';
 }
 
 function nextQ() {

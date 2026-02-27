@@ -108,8 +108,8 @@
   .option.selected .opt-letter { background: var(--accent); color: white; }
   .option.correct .opt-letter { background: var(--green); color: white; }
   .option.wrong .opt-letter { background: var(--red); color: white; }
-  .btn-next { margin-top: 1.2rem; display: none; }
-  .btn-next.show { display: block; }
+  .btn-next { margin-top: 1rem; display: none; }
+  .btn-next.show { display: block !important; }
 
   /* RESULT */
   .score-big { font-family: 'Bebas Neue', sans-serif; font-size: 5.5rem; text-align: center; line-height: 1; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -179,7 +179,8 @@
         <div class="q-text" id="q-text"></div>
       </div>
       <div class="options" id="opts"></div>
-      <!-- btn-next kaldırıldı, otomatik geçiyor -->
+      <div id="timeout-msg" style="display:none;text-align:center;padding:1rem;color:var(--muted);font-size:0.95rem;">⏰ Süre doldu!</div>
+      <button class="btn btn-primary btn-next" id="btn-next" onclick="nextQ()" style="margin-top:1rem;display:none;">Devam Et →</button>
     </div>
   </div>
 
@@ -235,8 +236,8 @@ const QUESTIONS = [
 ];
 
 let user = null, qIdx = 0, score = 0, correct = 0, wrong = 0;
-let answered = false, timer = null, timeLeft = 10;
-const TIMER_MAX = 10;
+let answered = false, timer = null, timeLeft = 15;
+const TIMER_MAX = 15;
 const CIRCUMFERENCE = 2 * Math.PI * 20; // r=20
 
 function pts(i) { return i < 10 ? 10 : i < 20 ? 20 : 30; }
@@ -281,6 +282,10 @@ function startQuiz() {
 
 function renderQ() {
   answered = false;
+  // reset görünürlük
+  document.querySelector('.q-header').style.display = '';
+  document.getElementById('opts').style.display = '';
+  document.getElementById('timeout-msg').style.display = 'none';
   const q = QUESTIONS[qIdx];
   const [bcls, btxt] = badge(qIdx);
   document.getElementById('q-badge').className = 'badge ' + bcls;
@@ -328,8 +333,11 @@ function updateTimer() {
 
 function autoFail() {
   answered = true; wrong++;
-  // süre bitince direkt sonraki soruya geç, doğruyu gösterme
-  setTimeout(() => nextQ(), 300);
+  // süre bitti - soruyu gizle, devam et butonunu göster
+  document.querySelector('.q-header').style.display = 'none';
+  document.getElementById('opts').style.display = 'none';
+  document.getElementById('timeout-msg').style.display = 'block';
+  document.getElementById('btn-next').classList.add('show');
 }
 
 function pick(idx, el) {
@@ -344,8 +352,7 @@ function pick(idx, el) {
     wrong++;
   }
   document.getElementById('score-live').textContent = score + ' Puan';
-  // doğru/yanlış göstermeden direkt sonraki soruya geç
-  setTimeout(() => nextQ(), 400);
+  document.getElementById('btn-next').classList.add('show');
 }
 
 function nextQ() {
