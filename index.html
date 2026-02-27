@@ -174,7 +174,7 @@
         <div class="q-text" id="q-text"></div>
       </div>
       <div class="options" id="opts"></div>
-      <button class="btn btn-primary btn-next" id="btn-next" onclick="nextQ()">Devam Et →</button>
+      <button class="btn btn-primary btn-next" id="btn-next" onclick="confirmPick(); nextQ()">Devam Et →</button>
     </div>
   </div>
 
@@ -230,7 +230,7 @@ const QUESTIONS = [
 ];
 
 let user = null, qIdx = 0, score = 0, correct = 0, wrong = 0;
-let answered = false;
+let answered = false, selectedIdx = null;
 
 function pts(i) { return i < 10 ? 10 : i < 20 ? 20 : 30; }
 function badge(i) {
@@ -297,21 +297,28 @@ function renderQ() {
   });
 
   document.getElementById('btn-next').classList.remove('show');
+  selectedIdx = null;
 }
 
 function pick(idx, el) {
-  if (answered) return;
+  const opts = document.querySelectorAll('.option');
+  opts.forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedIdx = idx;
+  document.getElementById('btn-next').classList.add('show');
+}
+
+function confirmPick() {
+  if (selectedIdx === null) return;
   answered = true;
   const opts = document.querySelectorAll('.option');
   opts.forEach(o => o.classList.add('disabled'));
-  el.classList.add('selected');
-  if (idx === QUESTIONS[qIdx].ans) {
+  if (selectedIdx === QUESTIONS[qIdx].ans) {
     score += pts(qIdx); correct++;
   } else {
     wrong++;
   }
   document.getElementById('score-live').textContent = score + ' Puan';
-  document.getElementById('btn-next').classList.add('show');
 }
 
 function nextQ() {
