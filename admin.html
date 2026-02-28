@@ -285,7 +285,13 @@
         </button>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-top:0.75rem;">
-          <button class="btn-finish-q" onclick="adminFinishQuiz()">
+          <button class="btn-restart-q" id="btn-prev-q" onclick="adminPrevQuestion()" style="background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);color:var(--blue);">
+            ← ÖNCEKİ SORU
+          </button>
+          <button class="btn-next-q" id="btn-start-q" onclick="adminStartQuiz()" style="display:none;">
+            ▶ YARIŞMAYI BAŞLAT
+          </button>
+          <button class="btn-finish-q" id="btn-finish-q" onclick="adminFinishQuiz()">
             🏁 Yarışmayı Bitir
           </button>
           <button class="btn-restart-q" onclick="adminRestartQuiz()">
@@ -327,7 +333,10 @@
         <div style="display:flex;gap:0.6rem;flex-direction:column;">
           <button class="btn-next-q" id="extra-btn-start" onclick="extraStart()">▶ EK SORULARI BAŞLAT</button>
           <button class="btn-next-q" id="extra-btn-next" onclick="extraNext()" style="display:none;">SONRAKİ SORU →</button>
-          <button class="btn-finish-q" id="extra-btn-finish" onclick="extraFinish()" style="display:none;">🏁 Ek Soruları Bitir</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+            <button class="btn-restart-q" id="extra-btn-prev" onclick="extraPrev()" style="display:none;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);color:var(--blue);padding:0.85rem;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;">← ÖNCEKİ SORU</button>
+            <button class="btn-finish-q" id="extra-btn-finish" onclick="extraFinish()" style="display:none;">🏁 Ek Soruları Bitir</button>
+          </div>
         </div>
 
         <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--green);font-weight:600;text-align:center;" id="extra-ans-info"></div>
@@ -384,6 +393,7 @@ const QUESTIONS = [
 let token = null;
 let allData = [];
 let liveCurrentQ = 0;
+let liveIsActive = false;
 let waitingCountInterval = null;
 
 async function doLogin() {
@@ -432,11 +442,13 @@ async function initLiveControl() {
     .single();
 
   if (error) {
-    // Eğer kayıt yoksa oluştur
-    await supabaseClient.from('quiz_state').upsert({ id: 1, current_question: 0, is_active: true });
+    // Eğer kayıt yoksa oluştur - başlatılmamış halde
+    await supabaseClient.from('quiz_state').upsert({ id: 1, current_question: 0, is_active: false });
     liveCurrentQ = 0;
+    liveIsActive = false;
   } else {
     liveCurrentQ = data.current_question || 0;
+    liveIsActive = data.is_active || false;
   }
 
   renderLiveQuestion();
@@ -446,6 +458,29 @@ async function initLiveControl() {
 function renderLiveQuestion() {
   const dot = document.getElementById('live-dot');
   const label = document.getElementById('live-status-label');
+  const btnNext = document.getElementById('btn-next-q');
+  const btnPrev = document.getElementById('btn-prev-q');
+  const btnStart = document.getElementById('btn-start-q');
+  const btnFinish = document.getElementById('btn-finish-q');
+
+  // Quiz başlatılmamış
+  if (!liveIsActive && liveCurrentQ === 0) {
+    dot.style.background = 'var(--muted)';
+    dot.style.animation = 'none';
+    label.style.color = 'var(--muted)';
+    label.textContent = 'BAŞLAMADI';
+    document.getElementById('live-q-num').textContent = '—';
+    document.getElementById('live-q-text').textContent = 'Yarışmayı başlatmak için aşağıdaki butona basın.';
+    document.getElementById('live-q-opts').innerHTML = '';
+    document.getElementById('live-q-counter').textContent = '— / 25';
+    document.getElementById('live-prog-txt').textContent = 'Bekleniyor...';
+    btnNext.style.display = 'none';
+    btnPrev.style.display = 'none';
+    btnStart.style.display = 'block';
+    btnFinish.style.display = 'none';
+    clearInterval(waitingCountInterval);
+    return;
+  }
 
   if (liveCurrentQ >= QUESTIONS.length) {
     // Yarışma bitti
@@ -456,15 +491,17 @@ function renderLiveQuestion() {
     document.getElementById('live-q-num').textContent = '✓';
     document.getElementById('live-q-text').textContent = 'Tüm sorular tamamlandı. Sonuçlar açıklanabilir.';
     document.getElementById('live-q-opts').innerHTML = '';
-    document.getElementById('btn-next-q').disabled = true;
-    document.getElementById('btn-next-q').textContent = 'TAMAMLANDI ✓';
     document.getElementById('live-q-counter').textContent = '25 / 25';
     document.getElementById('live-prog-txt').textContent = 'Tamamlandı';
+    btnNext.style.display = 'none';
+    btnPrev.style.display = 'none';
+    btnStart.style.display = 'none';
+    btnFinish.style.display = 'none';
     clearInterval(waitingCountInterval);
     return;
   }
 
-  // Normal durum
+  // Normal aktif durum
   dot.style.background = 'var(--green)';
   dot.style.animation = 'blink 1.2s ease-in-out infinite';
   label.style.color = 'var(--green)';
@@ -496,10 +533,25 @@ function renderLiveQuestion() {
     </div>`
   ).join('');
 
-  document.getElementById('btn-next-q').disabled = false;
-  document.getElementById('btn-next-q').textContent = liveCurrentQ < QUESTIONS.length - 1
-    ? 'SONRAKİ SORU →'
-    : "QUIZ'İ BİTİR →";
+  btnStart.style.display = 'none';
+  btnNext.style.display = 'block';
+  btnNext.disabled = false;
+  btnNext.textContent = liveCurrentQ < QUESTIONS.length - 1 ? 'SONRAKİ SORU →' : "QUIZ'İ BİTİR →";
+  btnPrev.style.display = liveCurrentQ > 0 ? 'block' : 'none';
+  btnFinish.style.display = 'block';
+}
+
+async function adminStartQuiz() {
+  if (!confirm('Yarışmayı başlatmak istediğinizden emin misiniz? Tüm katılımcılar 1. soruyu görecek.')) return;
+  const { error } = await supabaseClient
+    .from('quiz_state')
+    .update({ current_question: 0, is_active: true })
+    .eq('id', 1);
+  if (error) { alert('Hata: ' + error.message); return; }
+  liveCurrentQ = 0;
+  liveIsActive = true;
+  renderLiveQuestion();
+  startWaitingCountPoll();
 }
 
 async function adminNextQuestion() {
@@ -522,6 +574,7 @@ async function adminNextQuestion() {
 
   if (isLast) {
     liveCurrentQ = QUESTIONS.length;
+    liveIsActive = false;
     renderLiveQuestion();
     clearInterval(waitingCountInterval);
   } else {
@@ -530,11 +583,25 @@ async function adminNextQuestion() {
   }
 }
 
+async function adminPrevQuestion() {
+  if (liveCurrentQ <= 0) return;
+  const prevQ = liveCurrentQ - 1;
+  const { error } = await supabaseClient
+    .from('quiz_state')
+    .update({ current_question: prevQ, is_active: true })
+    .eq('id', 1);
+  if (error) { alert('Hata: ' + error.message); return; }
+  liveCurrentQ = prevQ;
+  liveIsActive = true;
+  renderLiveQuestion();
+}
+
 async function adminFinishQuiz() {
   if (!confirm('Yarışmayı bitirmek istediğinizden emin misiniz? Tüm katılımcılar sonuç ekranına geçecek.')) return;
   await supabaseClient.from('quiz_state').update({ is_active: false, current_question: QUESTIONS.length }).eq('id', 1);
   clearInterval(waitingCountInterval);
   liveCurrentQ = QUESTIONS.length;
+  liveIsActive = false;
   renderLiveQuestion();
 }
 
@@ -546,6 +613,7 @@ async function adminRestartQuiz() {
     .eq('id', 1);
   if (error) { alert('Hata: ' + error.message); return; }
   liveCurrentQ = 0;
+  liveIsActive = true;
   renderLiveQuestion();
   startWaitingCountPoll();
 }
@@ -728,6 +796,7 @@ function renderExtraPanel() {
     btnStart.style.display = 'block';
     btnNext.style.display = 'none';
     btnFinish.style.display = 'none';
+    document.getElementById('extra-btn-prev').style.display = 'none';
     return;
   }
 
@@ -746,6 +815,7 @@ function renderExtraPanel() {
     btnStart.style.display = 'none';
     btnNext.style.display = 'none';
     btnFinish.style.display = 'none';
+    document.getElementById('extra-btn-prev').style.display = 'none';
     return;
   }
 
@@ -759,6 +829,7 @@ function renderExtraPanel() {
   btnStart.style.display = 'none';
   btnNext.style.display = 'block';
   btnNext.textContent = extraCurrentQ < EK_SORULAR_ADMIN.length - 1 ? 'SONRAKİ SORU →' : 'SON SORU (BİTİR) →';
+  document.getElementById('extra-btn-prev').style.display = extraCurrentQ > 0 ? 'block' : 'none';
   btnFinish.style.display = 'block';
 
   const q = EK_SORULAR_ADMIN[extraCurrentQ];
@@ -781,6 +852,14 @@ function renderExtraPanel() {
 
 async function extraStart() {
   extraCurrentQ = 0;
+  extraIsActive = true;
+  await setExtraState();
+  renderExtraPanel();
+}
+
+async function extraPrev() {
+  if (extraCurrentQ <= 0) return;
+  extraCurrentQ = extraCurrentQ - 1;
   extraIsActive = true;
   await setExtraState();
   renderExtraPanel();

@@ -213,6 +213,19 @@
     </div>
   </div>
 
+  <!-- YÖNETİCİ BAŞLATMASI BEKLENİYOR -->
+  <div class="screen" id="screen-waiting-start">
+    <div class="card">
+      <div class="waiting-wrap">
+        <div class="waiting-icon">🎯</div>
+        <div class="waiting-title">Hazır Ol!</div>
+        <div class="waiting-sub">
+          Kayıt tamamlandı! Yönetici yarışmayı başlatmayı bekliyor<span class="waiting-dots"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- BEKLEME -->
   <div class="screen" id="screen-waiting">
     <div class="card">
@@ -312,7 +325,20 @@ async function fetchCurrentQuestion() {
 // Gelen state'e göre ekranı güncelle
 function handleStateUpdate(newQ, isActive) {
   if (!isActive) {
-    submitAndFinish();
+    // Quiz aktif değilse - eğer kullanıcı quiz'deyse bitir, login'deyse hiçbir şey yapma
+    const quizScreen = document.getElementById('screen-quiz');
+    const waitingScreen = document.getElementById('screen-waiting');
+    if (quizScreen.classList.contains('active') || waitingScreen.classList.contains('active')) {
+      submitAndFinish();
+    }
+    return;
+  }
+  // Quiz aktif - bekleme-start ekranından geçiş yap
+  const waitingStartScreen = document.getElementById('screen-waiting-start');
+  if (waitingStartScreen.classList.contains('active')) {
+    qIdx = newQ;
+    showScreen('quiz');
+    renderQ();
     return;
   }
   if (newQ !== qIdx) {
@@ -390,10 +416,15 @@ async function handleLogin() {
     
     // Supabase'den mevcut durumu al
     const state = await fetchCurrentQuestion();
-    if (state) {
-      qIdx = state.current_question || 0;
+    
+    // Quiz henüz başlamadıysa bekleme ekranına al
+    if (!state || !state.is_active) {
+      subscribeToQuizState();
+      showScreen('waiting-start');
+      return;
     }
     
+    qIdx = state.current_question || 0;
     startQuiz();
   } catch {
     document.getElementById('err-email').textContent = 'Sunucuya bağlanılamadı. API adresini kontrol edin.';
