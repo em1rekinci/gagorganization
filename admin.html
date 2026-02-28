@@ -339,6 +339,8 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
             <button class="btn-restart-q" id="extra-btn-prev" onclick="extraPrev()" style="display:none;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);color:var(--blue);padding:0.85rem;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;">← ÖNCEKİ SORU</button>
             <button class="btn-finish-q" id="extra-btn-finish" onclick="extraFinish()" style="display:none;">🏁 Ek Soruları Bitir</button>
+            <button class="btn-restart-q" onclick="extraResetState()" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;">⏹ Sıfırla (Beklet)</button>
+            <button class="btn-restart-q" onclick="extraRestartQuiz()" style="background:rgba(96,165,250,0.05);border:1px solid rgba(96,165,250,0.2);color:var(--blue);">🔄 Baştan Başlat</button>
           </div>
         </div>
 
@@ -431,6 +433,7 @@ function switchTab(tabId, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
   btn.classList.add('active');
+  if (tabId === 'tab-extra') { initExtraTab(); }
 }
 
 // =============================================
@@ -772,16 +775,27 @@ let extraIsActive = false;
 let extraWaitingInterval = null;
 
 async function initExtraTab() {
-  try {
-    const res = await fetch(`${API}/api/admin/extra-quiz/state`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (data.ok && data.state) {
-      extraCurrentQ = data.state.current_question || 0;
-      extraIsActive = data.state.is_active || false;
-    }
-  } catch(e) {}
+  const { data, error } = await supabaseClient
+    .from('extra_quiz_state')
+    .select('current_question, is_active')
+    .eq('id', 1)
+    .single();
+
+  if (error) {
+    await supabaseClient.from('extra_quiz_state').upsert({ id: 1, current_question: 0, is_active: false });
+    extraCurrentQ = 0;
+    extraIsActive = false;
+  } else {
+    extraCurrentQ = data.current_question || 0;
+    extraIsActive = data.is_active || false;
+  }
+
+  // Kirli state temizle
+  if (extraIsActive && extraCurrentQ === 0) {
+    await supabaseClient.from('extra_quiz_state').update({ is_active: false, current_question: 0 }).eq('id', 1);
+    extraIsActive = false;
+  }
+
   renderExtraPanel();
   startExtraWaitingCount();
 }
@@ -799,7 +813,7 @@ function renderExtraPanel() {
   const optsDiv = document.getElementById('extra-opts');
   const ansInfo = document.getElementById('extra-ans-info');
 
-  if (!extraIsActive && extraCurrentQ === 0) {
+  if (!extraIsActive && extraCurrentQ < EK_SORULAR_ADMIN.length) {
     dot.style.background = 'var(--muted)';
     dot.style.animation = 'none';
     lbl.textContent = 'BAŞLAMADI';
@@ -904,16 +918,27 @@ async function extraFinish() {
 }
 
 async function setExtraState() {
-  try {
-    await fetch(`${API}/api/admin/extra-quiz/state`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ current_question: extraCurrentQ, is_active: extraIsActive })
-    });
-  } catch(e) {}
+  const { error } = await supabaseClient
+    .from('extra_quiz_state')
+    .update({ current_question: extraCurrentQ, is_active: extraIsActive })
+    .eq('id', 1);
+  if (error) { alert('Hata: ' + error.message); }
+}
+
+async function extraResetState() {
+  if (!confirm('Ek quiz durumunu SIFIRLA? Herkes tekrar bekleme ekranına düşer.')) return;
+  await supabaseClient.from('extra_quiz_state').update({ is_active: false, current_question: 0 }).eq('id', 1);
+  extraCurrentQ = 0;
+  extraIsActive = false;
+  renderExtraPanel();
+}
+
+async function extraRestartQuiz() {
+  if (!confirm('Ek soruları BAŞTAN başlatmak istediğinizden emin misiniz? Herkes 1. soruya dönecek.')) return;
+  await supabaseClient.from('extra_quiz_state').update({ current_question: 0, is_active: true }).eq('id', 1);
+  extraCurrentQ = 0;
+  extraIsActive = true;
+  renderExtraPanel();
 }
 
 async function fetchExtraWaitingCount() {
