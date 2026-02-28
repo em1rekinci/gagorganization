@@ -81,7 +81,7 @@ src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAABCGlDQ
   <!-- GİRİŞ -->
   <div class="screen active" id="screen-login">
     <div class="info-box">
-      ⚡ Bu sayfa yalnızca yönetici tarafından yönlendirilen katılımcılar içindir. Quiz'de eşit puan alan katılımcılar bu sorularla sıralanacak.
+      ⚡ Bu sayfa yalnızca yönetici tarafından yönlendirilen katılımcılar içindir. Quiz'de eşit puan alan katılımcılar bu sorularla sıralanacak.Yönetici Yönlendirmesi dışında katılım sağlayan yarışmacılar DİSKALİFİYE olucaktır.
     </div>
     <div class="card">
       <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;margin-bottom:0.3rem;">E-posta ile Giriş</h2>
@@ -102,7 +102,7 @@ src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAABCGlDQ
       <div class="waiting-title">Hazır Ol!</div>
       <div class="waiting-msg">
         Ek sorular henüz başlamadı.<br>
-        Admin başlattığında otomatik olarak geçeceksin<span class="dots"></span>
+        Yönetici başlattığında otomatik olarak geçeceksin<span class="dots"></span>
       </div>
     </div>
   </div>
@@ -133,7 +133,7 @@ src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAABCGlDQ
       <div class="waiting-icon">✅</div>
       <div class="waiting-title">Cevabınız Alındı!</div>
       <div class="waiting-msg">
-        Admin bir sonraki soruyu başlatmayı bekliyor<span class="dots"></span>
+        Yönetici bir sonraki soruyu başlatmayı bekliyor<span class="dots"></span>
       </div>
     </div>
   </div>
@@ -145,7 +145,7 @@ src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAABCGlDQ
       <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;margin-bottom:0.8rem;color:var(--text);">Ek Sorular Bitti!</div>
       <div style="font-size:1.05rem;color:var(--muted);line-height:1.7;">
         Cevaplarınız kaydedildi.<br>
-        <span style="color:var(--accent);font-weight:600;">Sonuçlar admin tarafından açıklanacak. 👀</span>
+        <span style="color:var(--accent);font-weight:600;">Sonuçlar YÖNETİCİ tarafından açıklanacak. 👀</span>
       </div>
     </div>
   </div>
@@ -366,7 +366,7 @@ async function confirmPick() {
   if (localQIdx + 1 >= EK_SORULAR.length) {
     await finishQuiz();
   } else {
-    // Admin sonraki soruyu açana kadar bekle
+    // Yönetici sonraki soruyu açana kadar bekle
     showScreen('waiting');
     startPolling();
   }
