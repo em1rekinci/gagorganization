@@ -253,6 +253,8 @@ const API = "https://gagorganization.fun";
 // SUPABASE YAPILANDIRMASI — kendi bilgilerinle değiştir
 // =============================================
 const SUPABASE_URL = "https://rwognafwhzzynoamswpm.supabase.co";
+// ⚠️ Aşağıya Supabase panelinden aldığın ANON key'i yaz (service_role değil!)
+// Settings → API → "anon public" altındaki key
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b2duYWZ3aHp6eW5vYW1zd3BtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE2NjksImV4cCI6MjA4NzQ0NzY2OX0.q6j5gyvcwGWWzOSyHZUv9llhwONRd3ppzvrsjFRLRow";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // =============================================
