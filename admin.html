@@ -159,9 +159,16 @@
     width: 100%; padding: 0.85rem; border-radius: 12px; border: none; cursor: pointer;
     font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
     background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3);
-    color: var(--red); transition: all 0.2s; margin-top: 0.75rem;
+    color: var(--red); transition: all 0.2s;
   }
   .btn-finish-q:hover:not(:disabled) { background: rgba(248,113,113,0.2); }
+  .btn-restart-q {
+    width: 100%; padding: 0.85rem; border-radius: 12px; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+    background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.3);
+    color: var(--blue); transition: all 0.2s;
+  }
+  .btn-restart-q:hover { background: rgba(96,165,250,0.2); }
   .live-progress { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 0.5rem; }
   .live-badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 99px; font-size: 0.72rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.75rem; }
   .live-status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 0.4rem; animation: blink 1.2s ease-in-out infinite; }
@@ -246,11 +253,13 @@
 
     <!-- CANLI KONTROL SEKMESİ -->
     <div class="tab-panel" id="tab-live">
-      <div class="live-card">
-        <div style="display:flex;align-items:center;margin-bottom:1.2rem;">
-          <span class="live-status-dot"></span>
-          <span style="font-size:0.82rem;color:var(--green);font-weight:600;">CANLI YARıŞMA</span>
-          <span style="margin-left:auto;color:var(--muted);font-size:0.8rem;" id="live-q-counter">— / 25</span>
+
+      <!-- DURUM KARTI -->
+      <div class="live-card" id="live-status-card">
+        <div style="display:flex;align-items:center;margin-bottom:1.5rem;">
+          <span class="live-status-dot" id="live-dot"></span>
+          <span style="font-size:0.85rem;font-weight:700;letter-spacing:1px;" id="live-status-label">CANLI YARIŞMA</span>
+          <span style="margin-left:auto;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--muted);" id="live-q-counter">— / 25</span>
         </div>
 
         <div class="live-progress">
@@ -259,7 +268,7 @@
         </div>
 
         <div id="live-q-num" class="live-q-num">01</div>
-        <div id="live-q-text" class="live-q-text">Soru burada görünecek...</div>
+        <div id="live-q-text" class="live-q-text">Yükleniyor...</div>
         <div class="live-q-opts" id="live-q-opts"></div>
 
         <div class="waiting-count-box">
@@ -267,16 +276,23 @@
             <div class="waiting-count-num" id="waiting-count">—</div>
             <div class="waiting-count-lbl">katılımcı bekleniyor</div>
           </div>
-          <div style="margin-left:auto;color:var(--muted);font-size:0.78rem;" id="waiting-refresh-hint">Her 5 saniyede güncellenir</div>
+          <div style="margin-left:auto;color:var(--muted);font-size:0.78rem;">Her 5sn'de güncellenir</div>
         </div>
 
         <button class="btn-next-q" id="btn-next-q" onclick="adminNextQuestion()">
           SONRAKİ SORU →
         </button>
-        <button class="btn-finish-q" id="btn-finish-q" onclick="adminFinishQuiz()">
-          Yarışmayı Bitir
-        </button>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-top:0.75rem;">
+          <button class="btn-finish-q" onclick="adminFinishQuiz()">
+            🏁 Yarışmayı Bitir
+          </button>
+          <button class="btn-restart-q" onclick="adminRestartQuiz()">
+            🔄 Baştan Başlat
+          </button>
+        </div>
       </div>
+
     </div>
 
   </div>
@@ -388,19 +404,39 @@ async function initLiveControl() {
 }
 
 function renderLiveQuestion() {
+  const dot = document.getElementById('live-dot');
+  const label = document.getElementById('live-status-label');
+
   if (liveCurrentQ >= QUESTIONS.length) {
+    // Yarışma bitti
+    dot.style.background = 'var(--red)';
+    dot.style.animation = 'none';
+    label.style.color = 'var(--red)';
+    label.textContent = 'YARIŞMA BİTTİ';
     document.getElementById('live-q-num').textContent = '✓';
-    document.getElementById('live-q-text').textContent = 'Yarışma tamamlandı!';
+    document.getElementById('live-q-text').textContent = 'Tüm sorular tamamlandı. Sonuçlar açıklanabilir.';
     document.getElementById('live-q-opts').innerHTML = '';
     document.getElementById('btn-next-q').disabled = true;
+    document.getElementById('btn-next-q').textContent = 'TAMAMLANDI ✓';
     document.getElementById('live-q-counter').textContent = '25 / 25';
     document.getElementById('live-prog-txt').textContent = 'Tamamlandı';
+    clearInterval(waitingCountInterval);
     return;
   }
 
+  // Normal durum
+  dot.style.background = 'var(--green)';
+  dot.style.animation = 'blink 1.2s ease-in-out infinite';
+  label.style.color = 'var(--green)';
+  label.textContent = 'CANLI YARIŞMA';
+
   const q = QUESTIONS[liveCurrentQ];
   const letters = ['A','B','C','D'];
-  const badges = liveCurrentQ < 10 ? ['badge-easy','Kolay · 10 PT'] : liveCurrentQ < 20 ? ['badge-medium','Orta · 20 PT'] : ['badge-hard','Zor · 30 PT'];
+  const badges = liveCurrentQ < 10
+    ? ['badge-easy','Kolay · 10 PT']
+    : liveCurrentQ < 20
+      ? ['badge-medium','Orta · 20 PT']
+      : ['badge-hard','Zor · 30 PT'];
 
   document.getElementById('live-q-num').textContent = String(liveCurrentQ+1).padStart(2,'0');
   document.getElementById('live-q-text').textContent = q.q;
@@ -421,7 +457,9 @@ function renderLiveQuestion() {
   ).join('');
 
   document.getElementById('btn-next-q').disabled = false;
-  document.getElementById('btn-next-q').textContent = liveCurrentQ < QUESTIONS.length - 1 ? 'SONRAKİ SORU →' : 'QUIZ\'İ BİTİR →';
+  document.getElementById('btn-next-q').textContent = liveCurrentQ < QUESTIONS.length - 1
+    ? 'SONRAKİ SORU →'
+    : "QUIZ'İ BİTİR →";
 }
 
 async function adminNextQuestion() {
@@ -456,7 +494,20 @@ async function adminFinishQuiz() {
   if (!confirm('Yarışmayı bitirmek istediğinizden emin misiniz? Tüm katılımcılar sonuç ekranına geçecek.')) return;
   await supabaseClient.from('quiz_state').update({ is_active: false, current_question: QUESTIONS.length }).eq('id', 1);
   clearInterval(waitingCountInterval);
-  alert('Yarışma bitirildi!');
+  liveCurrentQ = QUESTIONS.length;
+  renderLiveQuestion();
+}
+
+async function adminRestartQuiz() {
+  if (!confirm('Yarışmayı BAŞTAN başlatmak istediğinizden emin misiniz? Herkes 1. soruya dönecek.')) return;
+  const { error } = await supabaseClient
+    .from('quiz_state')
+    .update({ current_question: 0, is_active: true })
+    .eq('id', 1);
+  if (error) { alert('Hata: ' + error.message); return; }
+  liveCurrentQ = 0;
+  renderLiveQuestion();
+  startWaitingCountPoll();
 }
 
 async function fetchWaitingCount() {
