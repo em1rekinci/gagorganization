@@ -274,7 +274,7 @@
         <div class="waiting-count-box">
           <div>
             <div class="waiting-count-num" id="waiting-count">—</div>
-            <div class="waiting-count-lbl">katılımcı bekleniyor</div>
+            <div class="waiting-count-lbl">bu soruyu cevapladı</div>
           </div>
           <div style="margin-left:auto;color:var(--muted);font-size:0.78rem;">Her 5sn'de güncellenir</div>
         </div>
@@ -512,7 +512,7 @@ async function adminRestartQuiz() {
 
 async function fetchWaitingCount() {
   try {
-    const res = await fetch(`${API}/api/admin/waiting-count`, {
+    const res = await fetch(`${API}/api/admin/waiting-count?q=${liveCurrentQ}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) return;

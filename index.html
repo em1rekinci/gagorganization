@@ -461,7 +461,13 @@ function confirmPick() {
 
 function nextQ() {
   if (!answered) return;
-  // Bekleme ekranına geç — admin sonraki soruyu başlatana kadar bekle
+  // Supabase'de bu kullanıcının cevapladığı soru numarasını güncelle
+  supabaseClient
+    .from('participants')
+    .update({ current_question: qIdx + 1 })
+    .eq('email', user.email)
+    .then(() => {});
+  // Bekleme ekranına geç
   document.getElementById('waiting-score').textContent = 'Anlık puanınız: ' + score;
   showScreen('waiting');
 }

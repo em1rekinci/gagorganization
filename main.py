@@ -207,13 +207,11 @@ def delete_result(email: str, _=Depends(verify_admin)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/admin/waiting-count")
-def waiting_count(_=Depends(verify_admin)):
+def waiting_count(q: int = 0, _=Depends(verify_admin)):
     try:
-        # Kayıt olan ama henüz bitirmemiş kişi sayısı = bekleyenler
-        participants = supabase.table("participants").select("email").execute()
-        results = supabase.table("results").select("email").execute()
-        finished_emails = {r["email"] for r in results.data}
-        waiting = [p for p in participants.data if p["email"] not in finished_emails]
-        return {"ok": True, "count": len(waiting)}
+        # O soruyu (q) cevaplamış kişi sayısı = current_question > q olanlar
+        result = supabase.table("participants").select("email, current_question").execute()
+        count = sum(1 for p in result.data if (p.get("current_question") or 0) > q)
+        return {"ok": True, "count": count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
