@@ -511,17 +511,18 @@ async function adminRestartQuiz() {
 }
 
 async function fetchWaitingCount() {
-  // Bekleme ekranındaki kişi sayısı — API'den al (bu endpoint'i backend'de eklemeniz gerekebilir)
-  // Şimdilik basit bir polling: /api/waiting-count
   try {
-    const res = await fetch(`${API}/api/waiting-count?q=${liveCurrentQ}`, {
+    // Toplam kayıtlı katılımcı sayısını göster
+    const res = await fetch(`${API}/api/admin/stats`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) return;
     const data = await res.json();
-    document.getElementById('waiting-count').textContent = data.count ?? '?';
+    // Tamamlamamış = toplam - tamamlayan
+    const waiting = (data.total_participants || 0) - (data.total_completed || 0);
+    document.getElementById('waiting-count').textContent = waiting >= 0 ? waiting : data.total_participants || 0;
   } catch {
-    // Sessizce geç
+    // sessizce geç
   }
 }
 

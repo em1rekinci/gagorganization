@@ -312,42 +312,62 @@ async function fetchCurrentQuestion() {
   return data;
 }
 
-// Supabase Realtime aboneliği başlat
+// Gelen state'e göre ekranı güncelle
+function handleStateUpdate(newQ, isActive) {
+  if (!isActive) {
+    submitAndFinish();
+    return;
+  }
+  if (newQ !== qIdx) {
+    qIdx = newQ;
+    if (qIdx >= QUESTIONS.length) {
+      submitAndFinish();
+    } else {
+      answered = false;
+      selectedIdx = null;
+      showScreen('quiz');
+      renderQ();
+    }
+  }
+}
+
+// Supabase Realtime + polling fallback
+let pollInterval = null;
+
 function subscribeToQuizState() {
+  // Önce eski kanalı kapat
   if (realtimeChannel) {
     supabaseClient.removeChannel(realtimeChannel);
   }
+
+  // Realtime aboneliği
   realtimeChannel = supabaseClient
-    .channel('quiz_state_changes')
+    .channel('quiz_state_ch_' + Math.random())
     .on('postgres_changes', {
       event: 'UPDATE',
       schema: 'public',
-      table: 'quiz_state',
-      filter: 'id=eq.1'
+      table: 'quiz_state'
     }, (payload) => {
       const newQ = payload.new.current_question;
       const isActive = payload.new.is_active;
-      
-      if (!isActive) {
-        // Quiz bitti — sonuç ekranına git
-        submitAndFinish();
-        return;
-      }
-      
-      // Yeni soru geldi
-      if (newQ !== qIdx) {
-        qIdx = newQ;
-        if (qIdx >= QUESTIONS.length) {
-          submitAndFinish();
-        } else {
-          answered = false;
-          selectedIdx = null;
-          showScreen('quiz');
-          renderQ();
-        }
-      }
+      handleStateUpdate(newQ, isActive);
     })
-    .subscribe();
+    .subscribe((status) => {
+      console.log('Realtime status:', status);
+    });
+
+  // Polling fallback — her 2 saniyede bir kontrol et
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
+    // Sadece bekleme ekranındaysa poll et
+    const waitingScreen = document.getElementById('screen-waiting');
+    if (!waitingScreen.classList.contains('active')) return;
+
+    const state = await fetchCurrentQuestion();
+    if (state) {
+      handleStateUpdate(state.current_question, state.is_active);
+    }
+  }, 2000);
 }
 
 async function handleLogin() {
@@ -450,6 +470,7 @@ async function submitAndFinish() {
   if (realtimeChannel) {
     supabaseClient.removeChannel(realtimeChannel);
   }
+  if (pollInterval) clearInterval(pollInterval);
   try {
     await fetch(`${API}/api/submit`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
