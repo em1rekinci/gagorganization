@@ -382,9 +382,10 @@ function subscribeToQuizState() {
   // Polling fallback — her 2 saniyede bir kontrol et
   if (pollInterval) clearInterval(pollInterval);
   pollInterval = setInterval(async () => {
-    // Sadece bekleme ekranındaysa poll et
+    // Bekleme ekranlarında poll et
     const waitingScreen = document.getElementById('screen-waiting');
-    if (!waitingScreen.classList.contains('active')) return;
+    const waitingStartScreen = document.getElementById('screen-waiting-start');
+    if (!waitingScreen.classList.contains('active') && !waitingStartScreen.classList.contains('active')) return;
 
     const state = await fetchCurrentQuestion();
     if (state) {
@@ -414,18 +415,9 @@ async function handleLogin() {
     if (!res.ok) throw new Error();
     user = { email, name };
     
-    // Supabase'den mevcut durumu al
-    const state = await fetchCurrentQuestion();
-    
-    // Quiz henüz başlamadıysa bekleme ekranına al
-    if (!state || !state.is_active) {
-      subscribeToQuizState();
-      showScreen('waiting-start');
-      return;
-    }
-    
-    qIdx = state.current_question || 0;
-    startQuiz();
+    // Her zaman bekleme ekranına al — admin başlatana kadar bekle
+    subscribeToQuizState();
+    showScreen('waiting-start');
   } catch {
     document.getElementById('err-email').textContent = 'Sunucuya bağlanılamadı. API adresini kontrol edin.';
     btn.disabled = false; btn.textContent = 'Yarışmaya Başla →';
