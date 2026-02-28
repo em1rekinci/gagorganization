@@ -298,36 +298,41 @@
 
     <!-- EK SORULAR SEKMESİ -->
     <div class="tab-panel" id="tab-extra">
-      <div class="section-title" style="margin-bottom:1.5rem;">⚡ Ek Sorular Kontrolü</div>
 
       <!-- DURUM KARTI -->
-      <div class="card" id="extra-state-card" style="margin-bottom:1.5rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <div class="live-card" id="extra-state-card">
+        <div style="display:flex;align-items:center;margin-bottom:1.5rem;">
+          <span class="live-status-dot" id="extra-dot" style="background:var(--muted);animation:none;"></span>
+          <span style="font-size:0.85rem;font-weight:700;letter-spacing:1px;" id="extra-status-label">YÜKLENİYOR...</span>
+          <span style="margin-left:auto;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--muted);" id="extra-q-counter">— / 10</span>
+        </div>
+
+        <div class="live-progress">
+          <span id="extra-q-info">Ek sorular henüz başlatılmadı.</span>
+          <span id="extra-badge" style="font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--accent2);letter-spacing:1px;">⚡ EK SORU · 10 PT</span>
+        </div>
+
+        <div id="extra-q-num" class="live-q-num">—</div>
+        <div id="extra-q-text" class="live-q-text" style="color:var(--muted);">Ek soruları başlatmak için aşağıdaki butona basın.</div>
+        <div class="live-q-opts" id="extra-opts"></div>
+
+        <div class="waiting-count-box">
           <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;" id="extra-status-label">YÜKLENİYOR...</div>
-            <div style="font-size:0.82rem;color:var(--muted);margin-top:0.2rem;" id="extra-q-info"></div>
+            <div class="waiting-count-num" id="extra-waiting-count">—</div>
+            <div class="waiting-count-lbl">ek soruları tamamladı</div>
           </div>
-          <div style="text-align:right;">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);" id="extra-waiting-count">—</div>
-            <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">bu soruyu cevapladı</div>
-          </div>
+          <div style="margin-left:auto;color:var(--muted);font-size:0.78rem;">Her 5sn'de güncellenir</div>
         </div>
-        <div id="extra-btn-row" style="display:flex;gap:0.75rem;">
-          <button class="btn-next-q" id="extra-btn-start" onclick="extraStart()" style="flex:1;">▶ Ek Soruları Başlat</button>
-          <button class="btn-next-q" id="extra-btn-next" onclick="extraNext()" style="flex:1;display:none;">Sonraki Soru →</button>
-          <button class="btn-finish-q" id="extra-btn-finish" onclick="extraFinish()" style="display:none;">Bitir ✓</button>
+
+        <div style="display:flex;gap:0.6rem;flex-direction:column;">
+          <button class="btn-next-q" id="extra-btn-start" onclick="extraStart()">▶ EK SORULARI BAŞLAT</button>
+          <button class="btn-next-q" id="extra-btn-next" onclick="extraNext()" style="display:none;">SONRAKİ SORU →</button>
+          <button class="btn-finish-q" id="extra-btn-finish" onclick="extraFinish()" style="display:none;">🏁 Ek Soruları Bitir</button>
         </div>
+
+        <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--green);font-weight:600;text-align:center;" id="extra-ans-info"></div>
       </div>
 
-      <!-- MEVCUT SORU PREVİEW -->
-      <div class="card" id="extra-preview-card" style="display:none;">
-        <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);flex-shrink:0;" id="extra-q-num">01</div>
-          <div style="font-size:1rem;font-weight:500;line-height:1.55;padding-top:0.2rem;" id="extra-q-text"></div>
-        </div>
-        <div id="extra-opts" style="display:grid;gap:0.5rem;"></div>
-        <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--green);font-weight:600;" id="extra-ans-info"></div>
-      </div>
     </div>
 
   </div>
@@ -697,56 +702,81 @@ async function initExtraTab() {
 
 function renderExtraPanel() {
   const lbl = document.getElementById('extra-status-label');
+  const dot = document.getElementById('extra-dot');
   const qInfo = document.getElementById('extra-q-info');
+  const counter = document.getElementById('extra-q-counter');
+  const qNum = document.getElementById('extra-q-num');
+  const qText = document.getElementById('extra-q-text');
   const btnStart = document.getElementById('extra-btn-start');
   const btnNext = document.getElementById('extra-btn-next');
   const btnFinish = document.getElementById('extra-btn-finish');
-  const preview = document.getElementById('extra-preview-card');
+  const optsDiv = document.getElementById('extra-opts');
+  const ansInfo = document.getElementById('extra-ans-info');
 
   if (!extraIsActive && extraCurrentQ === 0) {
+    dot.style.background = 'var(--muted)';
+    dot.style.animation = 'none';
     lbl.textContent = 'BAŞLAMADI';
     lbl.style.color = 'var(--muted)';
     qInfo.textContent = 'Ek sorular henüz başlatılmadı.';
+    counter.textContent = `— / ${EK_SORULAR_ADMIN.length}`;
+    qNum.textContent = '—';
+    qText.textContent = 'Ek soruları başlatmak için aşağıdaki butona basın.';
+    qText.style.color = 'var(--muted)';
+    optsDiv.innerHTML = '';
+    ansInfo.textContent = '';
     btnStart.style.display = 'block';
     btnNext.style.display = 'none';
     btnFinish.style.display = 'none';
-    preview.style.display = 'none';
     return;
   }
+
   if (extraCurrentQ >= EK_SORULAR_ADMIN.length) {
+    dot.style.background = 'var(--green)';
+    dot.style.animation = 'none';
     lbl.textContent = 'EK SORULAR BİTTİ';
     lbl.style.color = 'var(--green)';
     qInfo.textContent = `Tüm ${EK_SORULAR_ADMIN.length} ek soru tamamlandı.`;
+    counter.textContent = `${EK_SORULAR_ADMIN.length} / ${EK_SORULAR_ADMIN.length}`;
+    qNum.textContent = '✓';
+    qText.textContent = 'Ek sorular başarıyla tamamlandı.';
+    qText.style.color = 'var(--green)';
+    optsDiv.innerHTML = '';
+    ansInfo.textContent = '';
     btnStart.style.display = 'none';
     btnNext.style.display = 'none';
     btnFinish.style.display = 'none';
-    preview.style.display = 'none';
     return;
   }
+
+  // Aktif
+  dot.style.background = 'var(--accent)';
+  dot.style.animation = 'blink 1.2s ease-in-out infinite';
   lbl.textContent = 'AKTİF';
   lbl.style.color = 'var(--accent)';
   qInfo.textContent = `Ek Soru ${extraCurrentQ + 1} / ${EK_SORULAR_ADMIN.length} gösteriliyor`;
+  counter.textContent = `${extraCurrentQ + 1} / ${EK_SORULAR_ADMIN.length}`;
   btnStart.style.display = 'none';
   btnNext.style.display = 'block';
-  btnNext.textContent = extraCurrentQ < EK_SORULAR_ADMIN.length - 1 ? 'Sonraki Soru →' : 'Son Soru (Bitir) →';
+  btnNext.textContent = extraCurrentQ < EK_SORULAR_ADMIN.length - 1 ? 'SONRAKİ SORU →' : 'SON SORU (BİTİR) →';
   btnFinish.style.display = 'block';
 
-  // Preview
   const q = EK_SORULAR_ADMIN[extraCurrentQ];
-  document.getElementById('extra-q-num').textContent = String(extraCurrentQ + 1).padStart(2, '0');
-  document.getElementById('extra-q-text').textContent = q.q;
+  qNum.textContent = String(extraCurrentQ + 1).padStart(2, '0');
+  qText.textContent = q.q;
+  qText.style.color = 'var(--text)';
+
   const letters = ['A','B','C','D'];
-  const optsDiv = document.getElementById('extra-opts');
   optsDiv.innerHTML = '';
   q.opts.forEach(function(opt, i) {
-    const el = document.createElement('div');
     const isCorrect = i === q.ans;
-    el.style.cssText = `background:var(--surface);border:1.5px solid ${isCorrect ? 'var(--green)' : 'var(--border)'};border-radius:8px;padding:0.6rem 0.9rem;display:flex;align-items:center;gap:0.7rem;font-size:0.88rem;`;
-    el.innerHTML = `<div style="width:24px;height:24px;border-radius:50%;background:${isCorrect ? 'var(--green)' : 'var(--border)'};display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;color:${isCorrect ? '#000' : 'var(--text)'};flex-shrink:0;">${letters[i]}</div><div>${opt}</div>`;
+    const el = document.createElement('div');
+    el.className = 'live-q-opt' + (isCorrect ? ' correct-opt' : '');
+    el.innerHTML = `<div class="opt-ltr" style="${isCorrect ? 'background:var(--green);color:#000;' : ''}">${letters[i]}</div><div style="color:${isCorrect ? 'var(--text)' : 'var(--muted)'}">${opt}</div>`;
     optsDiv.appendChild(el);
   });
-  document.getElementById('extra-ans-info').textContent = `✓ Doğru cevap: ${letters[q.ans]} — ${q.opts[q.ans]}`;
-  preview.style.display = 'block';
+
+  ansInfo.textContent = `✓ Doğru cevap: ${letters[q.ans]} — ${q.opts[q.ans]}`;
 }
 
 async function extraStart() {
