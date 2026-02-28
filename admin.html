@@ -512,15 +512,12 @@ async function adminRestartQuiz() {
 
 async function fetchWaitingCount() {
   try {
-    // Toplam kayıtlı katılımcı sayısını göster
-    const res = await fetch(`${API}/api/admin/stats`, {
+    const res = await fetch(`${API}/api/admin/waiting-count`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) return;
     const data = await res.json();
-    // Tamamlamamış = toplam - tamamlayan
-    const waiting = (data.total_participants || 0) - (data.total_completed || 0);
-    document.getElementById('waiting-count').textContent = waiting >= 0 ? waiting : data.total_participants || 0;
+    document.getElementById('waiting-count').textContent = data.count ?? '?';
   } catch {
     // sessizce geç
   }
