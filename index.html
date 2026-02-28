@@ -220,8 +220,7 @@
         <div class="waiting-icon">⏳</div>
         <div class="waiting-title">Cevabınız Alındı!</div>
         <div class="waiting-sub">
-          Admin bir sonraki soruyu başlatmayı bekliyor<span class="waiting-dots"></span><br>
-          <span id="waiting-score" style="color:var(--accent);font-weight:700;font-size:1rem;margin-top:0.5rem;display:block;"></span>
+          Admin bir sonraki soruyu başlatmayı bekliyor<span class="waiting-dots"></span>
         </div>
         <div class="answered-badge">✓ Cevaplandı</div>
       </div>
@@ -231,15 +230,13 @@
   <!-- SONUÇ -->
   <div class="screen" id="screen-result">
     <div class="card" style="text-align:center;padding:3rem 2rem;">
-      <div style="font-size:3.5rem;margin-bottom:1.2rem;">🎉</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;margin-bottom:0.8rem;color:var(--text);">Tebrikler!</div>
-      <div style="font-size:1.05rem;color:var(--muted);line-height:1.7;margin-bottom:2rem;">
-        GAG Organization TikTok Quiz Night'a<br>katıldığınız için teşekkürler!<br>
-        <span style="color:var(--accent);font-weight:600;">Sonuçlar yakında açıklanacak. 👀</span>
+      <div style="font-size:3.5rem;margin-bottom:1.2rem;">🏁</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:3px;margin-bottom:0.8rem;color:var(--text);">Yarışma Bitti!</div>
+      <div style="font-size:1.05rem;color:var(--muted);line-height:1.7;margin-bottom:1rem;">
+        GAG Organization TikTok Quiz Night'a<br>katıldığınız için teşekkürler!
       </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem;display:inline-block;min-width:160px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:3rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;" id="res-score">0</div>
-        <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;">Toplam Puanınız</div>
+      <div style="color:var(--accent);font-weight:600;font-size:1rem;">
+        Sonuçlar yakında açıklanacak. 👀
       </div>
     </div>
   </div>
@@ -468,7 +465,7 @@ function nextQ() {
     .eq('email', user.email)
     .then(() => {});
   // Bekleme ekranına geç
-  document.getElementById('waiting-score').textContent = 'Anlık puanınız: ' + score;
+  
   showScreen('waiting');
 }
 
@@ -495,7 +492,6 @@ async function finishQuiz() {
 }
 
 function showResult(rank, total) {
-  document.getElementById('res-score').textContent = score;
   showScreen('result');
 }
 
