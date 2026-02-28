@@ -356,6 +356,8 @@ function handleStateUpdate(newQ, isActive) {
 
 // Supabase Realtime + polling fallback
 let pollInterval = null;
+let lastKnownIsActive = null;
+let lastKnownQ = null;
 
 function subscribeToQuizState() {
   // Önce eski kanalı kapat
@@ -373,13 +375,23 @@ function subscribeToQuizState() {
     }, (payload) => {
       const newQ = payload.new.current_question;
       const isActive = payload.new.is_active;
+      lastKnownIsActive = isActive;
+      lastKnownQ = newQ;
       handleStateUpdate(newQ, isActive);
     })
     .subscribe((status) => {
       console.log('Realtime status:', status);
     });
 
-  // Polling fallback — her 2 saniyede bir kontrol et
+  // Mevcut durumu kaydet (polling karşılaştırması için)
+  fetchCurrentQuestion().then(state => {
+    if (state) {
+      lastKnownIsActive = state.is_active;
+      lastKnownQ = state.current_question;
+    }
+  });
+
+  // Polling fallback — her 2 saniyede bir kontrol et, SADECE değişiklikte tetikle
   if (pollInterval) clearInterval(pollInterval);
   pollInterval = setInterval(async () => {
     // Bekleme ekranlarında poll et
@@ -388,7 +400,13 @@ function subscribeToQuizState() {
     if (!waitingScreen.classList.contains('active') && !waitingStartScreen.classList.contains('active')) return;
 
     const state = await fetchCurrentQuestion();
-    if (state) {
+    if (!state) return;
+
+    // Sadece değişiklik olduğunda tetikle
+    const changed = state.is_active !== lastKnownIsActive || state.current_question !== lastKnownQ;
+    if (changed) {
+      lastKnownIsActive = state.is_active;
+      lastKnownQ = state.current_question;
       handleStateUpdate(state.current_question, state.is_active);
     }
   }, 2000);

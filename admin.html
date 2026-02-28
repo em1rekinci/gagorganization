@@ -297,6 +297,9 @@
           <button class="btn-restart-q" onclick="adminRestartQuiz()">
             🔄 Baştan Başlat
           </button>
+          <button class="btn-restart-q" onclick="adminResetState()" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;">
+            ⏹ Sıfırla (Beklet)
+          </button>
         </div>
       </div>
 
@@ -451,8 +454,22 @@ async function initLiveControl() {
     liveIsActive = data.is_active || false;
   }
 
+  // Eğer is_active:true ama currentQ=0 ise (başlatılmamış ama true kalmış) — sıfırla
+  if (liveIsActive && liveCurrentQ === 0) {
+    await supabaseClient.from('quiz_state').update({ is_active: false, current_question: 0 }).eq('id', 1);
+    liveIsActive = false;
+  }
+
   renderLiveQuestion();
   startWaitingCountPoll();
+}
+
+async function adminResetState() {
+  if (!confirm('Quiz durumunu SIFIRLA? Herkes tekrar bekleme ekranına düşer.')) return;
+  await supabaseClient.from('quiz_state').update({ is_active: false, current_question: 0 }).eq('id', 1);
+  liveCurrentQ = 0;
+  liveIsActive = false;
+  renderLiveQuestion();
 }
 
 function renderLiveQuestion() {
@@ -463,8 +480,8 @@ function renderLiveQuestion() {
   const btnStart = document.getElementById('btn-start-q');
   const btnFinish = document.getElementById('btn-finish-q');
 
-  // Quiz başlatılmamış
-  if (!liveIsActive && liveCurrentQ === 0) {
+  // Quiz başlatılmamış (is_active=false ve quiz bitmemişse)
+  if (!liveIsActive && liveCurrentQ < QUESTIONS.length) {
     dot.style.background = 'var(--muted)';
     dot.style.animation = 'none';
     label.style.color = 'var(--muted)';
@@ -552,6 +569,7 @@ async function adminStartQuiz() {
   liveIsActive = true;
   renderLiveQuestion();
   startWaitingCountPoll();
+  alert('Yarışma başlatıldı! Tüm katılımcılar 1. soruya geçti.');
 }
 
 async function adminNextQuestion() {
