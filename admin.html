@@ -448,7 +448,7 @@ async function initLiveControl() {
     .single();
 
   if (error) {
-    // Eğer kayıt yoksa oluştur - başlatılmamış halde
+    // Kayıt yoksa oluştur
     await supabaseClient.from('quiz_state').upsert({ id: 1, current_question: 0, is_active: false });
     liveCurrentQ = 0;
     liveIsActive = false;
@@ -457,9 +457,9 @@ async function initLiveControl() {
     liveIsActive = data.is_active || false;
   }
 
-  // Eğer is_active:true ama currentQ=0 ise (başlatılmamış ama true kalmış) — sıfırla
-  if (liveIsActive && liveCurrentQ === 0) {
-    await supabaseClient.from('quiz_state').update({ is_active: false, current_question: 0 }).eq('id', 1);
+  // Admin paneli her açıldığında is_active=false yap — admin elle başlatır
+  if (liveIsActive) {
+    await supabaseClient.from('quiz_state').update({ is_active: false }).eq('id', 1);
     liveIsActive = false;
   }
 
@@ -790,9 +790,9 @@ async function initExtraTab() {
     extraIsActive = data.is_active || false;
   }
 
-  // Kirli state temizle
-  if (extraIsActive && extraCurrentQ === 0) {
-    await supabaseClient.from('extra_quiz_state').update({ is_active: false, current_question: 0 }).eq('id', 1);
+  // Admin sekmesi her açıldığında is_active=false yap — admin elle başlatır
+  if (extraIsActive) {
+    await supabaseClient.from('extra_quiz_state').update({ is_active: false }).eq('id', 1);
     extraIsActive = false;
   }
 
