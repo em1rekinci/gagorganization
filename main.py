@@ -33,6 +33,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 security = HTTPBearer(auto_error=False)
 
+# ===== MODELLER =====
 class StartQuiz(BaseModel):
     email: str
     name: str
@@ -51,7 +52,11 @@ class SubmitExtra(BaseModel):
 class AdminLogin(BaseModel):
     password: str
 
-# ===== PAGES =====
+class QuizStateUpdate(BaseModel):
+    current_question: int
+    is_active: bool
+
+# ===== SAYFALAR =====
 @app.get("/")
 def index():
     content = open("index.html", "r", encoding="utf-8").read()
@@ -73,7 +78,7 @@ def logo():
         return FileResponse("logo.png", media_type="image/png")
     raise HTTPException(status_code=404)
 
-# ===== QUIZ API =====
+# ===== ANA QUIZ =====
 @app.post("/api/start")
 def start_quiz(data: StartQuiz):
     try:
@@ -137,7 +142,7 @@ def submit_extra(data: SubmitExtra):
     try:
         existing = supabase.table("extra_results").select("*").eq("email", data.email).execute()
         if existing.data:
-            return {"ok": True, "msg": "Zaten tamamlandı"}
+            return {"ok": True, "msg": "Zaten tamamlandi"}
         supabase.table("extra_results").insert({
             "email": data.email,
             "extra_score": data.extra_score,
@@ -147,11 +152,11 @@ def submit_extra(data: SubmitExtra):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ===== ADMIN =====
+# ===== ADMIN AUTH =====
 @app.post("/api/admin/login")
 def admin_login(data: AdminLogin):
     if data.password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=401, detail="Yanlış şifre")
+        raise HTTPException(status_code=401, detail="Yanlis sifre")
     return {"ok": True, "token": ADMIN_PASSWORD}
 
 def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
@@ -159,20 +164,18 @@ def verify_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
         raise HTTPException(status_code=401, detail="Yetkisiz")
     return True
 
+# ===== ADMIN - LEADERBOARD & STATS =====
 @app.get("/api/admin/leaderboard")
 def admin_leaderboard(_=Depends(verify_admin)):
     try:
         results = supabase.table("results").select("*").order("score", desc=True).execute()
         extras = supabase.table("extra_results").select("*").execute()
         extra_map = {e["email"]: e["extra_score"] for e in extras.data}
-        
         enriched = []
         for r in results.data:
             extra = extra_map.get(r["email"])
             total = r["score"] + (extra or 0)
             enriched.append({**r, "extra_score": extra, "total_score": total})
-        
-        # önce quiz puanı, eşitse toplam puana göre sırala
         enriched.sort(key=lambda x: (x["score"], x["total_score"]), reverse=True)
         return {"ok": True, "data": enriched, "total": len(enriched)}
     except Exception as e:
@@ -206,12 +209,69 @@ def delete_result(email: str, _=Depends(verify_admin)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ===== ADMIN - ANA QUIZ STATE (quiz_state id=1 sabit satir) =====
+@app.get("/api/admin/quiz-state")
+def get_quiz_state(_=Depends(verify_admin)):
+    try:
+        result = supabase.table("quiz_state").select("*").eq("id", 1).execute()
+        if result.data:
+            return {"ok": True, "state": result.data[0]}
+        return {"ok": True, "state": {"current_question": 0, "is_active": True}}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/admin/quiz-state")
+def set_quiz_state(data: QuizStateUpdate, _=Depends(verify_admin)):
+    try:
+        supabase.table("quiz_state").update({
+            "current_question": data.current_question,
+            "is_active": data.is_active,
+            "updated_at": datetime.utcnow().isoformat()
+        }).eq("id", 1).execute()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/admin/waiting-count")
 def waiting_count(q: int = 0, _=Depends(verify_admin)):
+    """Ana quiz: o soruyu cevaplayan katilimci sayisi (current_question > q)"""
     try:
-        # O soruyu (q) cevaplamış kişi sayısı = current_question > q olanlar
         result = supabase.table("participants").select("email, current_question").execute()
         count = sum(1 for p in result.data if (p.get("current_question") or 0) > q)
         return {"ok": True, "count": count}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ===== ADMIN - EK SORULAR STATE (extra_quiz_state id=1 sabit satir) =====
+@app.get("/api/admin/extra-quiz/state")
+def get_extra_quiz_state(_=Depends(verify_admin)):
+    try:
+        result = supabase.table("extra_quiz_state").select("*").eq("id", 1).execute()
+        if result.data:
+            return {"ok": True, "state": result.data[0]}
+        return {"ok": True, "state": {"current_question": 0, "is_active": False}}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/admin/extra-quiz/state")
+def set_extra_quiz_state(data: QuizStateUpdate, _=Depends(verify_admin)):
+    try:
+        supabase.table("extra_quiz_state").update({
+            "current_question": data.current_question,
+            "is_active": data.is_active,
+            "updated_at": datetime.utcnow().isoformat()
+        }).eq("id", 1).execute()
+        return {"ok": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/admin/extra-waiting-count")
+def extra_waiting_count(_=Depends(verify_admin)):
+    """Ek soruları tamamlayıp submit etmis kisi sayisi"""
+    try:
+        done = supabase.table("extra_results").select("email").execute()
+        # Toplam davet edilenleri participants'tan al
+        participants = supabase.table("participants").select("email").execute()
+        return {"ok": True, "count": len(done.data), "total": len(participants.data)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

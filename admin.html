@@ -203,6 +203,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('tab-leaderboard', this)">📊 Sıralama</button>
       <button class="tab-btn" onclick="switchTab('tab-live', this)">🎮 Canlı Kontrol</button>
+      <button class="tab-btn" onclick="switchTab('tab-extra', this); initExtraTab()">⚡ Ek Sorular</button>
     </div>
 
     <!-- SIRALAMА SEKMESİ -->
@@ -292,6 +293,41 @@
           </button>
         </div>
       </div>
+
+
+    <!-- EK SORULAR SEKMESİ -->
+    <div class="tab-panel" id="tab-extra">
+      <div class="section-title" style="margin-bottom:1.5rem;">⚡ Ek Sorular Kontrolü</div>
+
+      <!-- DURUM KARTI -->
+      <div class="card" id="extra-state-card" style="margin-bottom:1.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;" id="extra-status-label">YÜKLENİYOR...</div>
+            <div style="font-size:0.82rem;color:var(--muted);margin-top:0.2rem;" id="extra-q-info"></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);" id="extra-waiting-count">—</div>
+            <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">bu soruyu cevapladı</div>
+          </div>
+        </div>
+        <div id="extra-btn-row" style="display:flex;gap:0.75rem;">
+          <button class="btn-next-q" id="extra-btn-start" onclick="extraStart()" style="flex:1;">▶ Ek Soruları Başlat</button>
+          <button class="btn-next-q" id="extra-btn-next" onclick="extraNext()" style="flex:1;display:none;">Sonraki Soru →</button>
+          <button class="btn-finish-q" id="extra-btn-finish" onclick="extraFinish()" style="display:none;">Bitir ✓</button>
+        </div>
+      </div>
+
+      <!-- MEVCUT SORU PREVİEW -->
+      <div class="card" id="extra-preview-card" style="display:none;">
+        <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--accent);flex-shrink:0;" id="extra-q-num">01</div>
+          <div style="font-size:1rem;font-weight:500;line-height:1.55;padding-top:0.2rem;" id="extra-q-text"></div>
+        </div>
+        <div id="extra-opts" style="display:grid;gap:0.5rem;"></div>
+        <div style="margin-top:0.8rem;font-size:0.8rem;color:var(--green);font-weight:600;" id="extra-ans-info"></div>
+      </div>
+    </div>
 
     </div>
 
@@ -623,6 +659,164 @@ function logout() {
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+
+// ================================================================
+// EK SORULAR ADMIN - extra_quiz_state id=1 sabit satir
+// ================================================================
+const EK_SORULAR_ADMIN = [
+  { q: "Halilişko patates yemeyi bıraktıktan sonra hangi yemeği daha çok sevmiştir?", opts: ["Makarna","Tost","Yumurta","Ekmek"], ans: 1 },
+  { q: "Kabede Hacılar Hu Der Allah İlahisiyle Gündeme Gelen Kişi Kimdir ?", opts: ["Caner","Cemal","Cemil","Celal"], ans: 3 },
+  { q: "GAG Organizasyon Tiktok sayfasının en çok izlenen videosu hangisidir?", opts: ["Wegh Hallowen Afiş","Noel Party Afiş","Erkolar Kapatıldı Party Afiş","Big Final2 Party Afiş"], ans: 2 },
+  { q: "Ecrin Su Çobanın son şarkısının adı nedir ?", opts: ["Karma","Masallar Kadar Güzel","Masallar İnan","Pembe Günlüğüm"], ans: 0 },
+  { q: "BerkeJuanın kısa süre önce evlendiği kişi kimdir ?", opts: ["Yaren Alaca","Aysude","Elif Armağan","Beste Kelkit"], ans: 3 },
+  { q: "Fenomen House de Bulanan Taylan Aslen nerelidir ?", opts: ["Türkiye","Kazakistan","Türkmenistan","Afganistan"], ans: 3 },
+  { q: "Dubai'de Türk fenomenlerle ilgili 2026'da yaşanan olay nedir?", opts: ["Ortak bir müzik projesi","Fenomenler arasında kavga görüntülerinin yayılması","Uluslararası ödül töreni","TikTok Shop lansmanı"], ans: 1 },
+  { q: "Erol Yıldırım 'Sen beni her gördüğünde ... olucaksın' demiştir?", opts: ["Üzüleceksin","Ağlaycaksın","Kahrolacaksın","Kıskanacaksın"], ans: 2 },
+  { q: "TikTok hangi yıl global olarak piyasaya sürüldü?", opts: ["2016","2014","2018","2017"], ans: 0 },
+  { q: "Kısmetse Olur ilk sezon şampiyonu Kimdir ?", opts: ["Nur Erkoç ve Batuhan","Cansel Çördük ve Eser","Elif ve Sedat","Ayça ve Emre"], ans: 1 },
+];
+
+let extraCurrentQ = 0;
+let extraIsActive = false;
+let extraWaitingInterval = null;
+
+async function initExtraTab() {
+  try {
+    const res = await fetch(`${API}/api/admin/extra-quiz/state`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.ok && data.state) {
+      extraCurrentQ = data.state.current_question || 0;
+      extraIsActive = data.state.is_active || false;
+    }
+  } catch(e) {}
+  renderExtraPanel();
+  startExtraWaitingCount();
+}
+
+function renderExtraPanel() {
+  const lbl = document.getElementById('extra-status-label');
+  const qInfo = document.getElementById('extra-q-info');
+  const btnStart = document.getElementById('extra-btn-start');
+  const btnNext = document.getElementById('extra-btn-next');
+  const btnFinish = document.getElementById('extra-btn-finish');
+  const preview = document.getElementById('extra-preview-card');
+
+  if (!extraIsActive && extraCurrentQ === 0) {
+    lbl.textContent = 'BAŞLAMADI';
+    lbl.style.color = 'var(--muted)';
+    qInfo.textContent = 'Ek sorular henüz başlatılmadı.';
+    btnStart.style.display = 'block';
+    btnNext.style.display = 'none';
+    btnFinish.style.display = 'none';
+    preview.style.display = 'none';
+    return;
+  }
+  if (extraCurrentQ >= EK_SORULAR_ADMIN.length) {
+    lbl.textContent = 'EK SORULAR BİTTİ';
+    lbl.style.color = 'var(--green)';
+    qInfo.textContent = `Tüm ${EK_SORULAR_ADMIN.length} ek soru tamamlandı.`;
+    btnStart.style.display = 'none';
+    btnNext.style.display = 'none';
+    btnFinish.style.display = 'none';
+    preview.style.display = 'none';
+    return;
+  }
+  lbl.textContent = 'AKTİF';
+  lbl.style.color = 'var(--accent)';
+  qInfo.textContent = `Ek Soru ${extraCurrentQ + 1} / ${EK_SORULAR_ADMIN.length} gösteriliyor`;
+  btnStart.style.display = 'none';
+  btnNext.style.display = 'block';
+  btnNext.textContent = extraCurrentQ < EK_SORULAR_ADMIN.length - 1 ? 'Sonraki Soru →' : 'Son Soru (Bitir) →';
+  btnFinish.style.display = 'block';
+
+  // Preview
+  const q = EK_SORULAR_ADMIN[extraCurrentQ];
+  document.getElementById('extra-q-num').textContent = String(extraCurrentQ + 1).padStart(2, '0');
+  document.getElementById('extra-q-text').textContent = q.q;
+  const letters = ['A','B','C','D'];
+  const optsDiv = document.getElementById('extra-opts');
+  optsDiv.innerHTML = '';
+  q.opts.forEach(function(opt, i) {
+    const el = document.createElement('div');
+    const isCorrect = i === q.ans;
+    el.style.cssText = `background:var(--surface);border:1.5px solid ${isCorrect ? 'var(--green)' : 'var(--border)'};border-radius:8px;padding:0.6rem 0.9rem;display:flex;align-items:center;gap:0.7rem;font-size:0.88rem;`;
+    el.innerHTML = `<div style="width:24px;height:24px;border-radius:50%;background:${isCorrect ? 'var(--green)' : 'var(--border)'};display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;color:${isCorrect ? '#000' : 'var(--text)'};flex-shrink:0;">${letters[i]}</div><div>${opt}</div>`;
+    optsDiv.appendChild(el);
+  });
+  document.getElementById('extra-ans-info').textContent = `✓ Doğru cevap: ${letters[q.ans]} — ${q.opts[q.ans]}`;
+  preview.style.display = 'block';
+}
+
+async function extraStart() {
+  extraCurrentQ = 0;
+  extraIsActive = true;
+  await setExtraState();
+  renderExtraPanel();
+}
+
+async function extraNext() {
+  const next = extraCurrentQ + 1;
+  if (next >= EK_SORULAR_ADMIN.length) {
+    await extraFinish();
+    return;
+  }
+  extraCurrentQ = next;
+  extraIsActive = true;
+  await setExtraState();
+  renderExtraPanel();
+}
+
+async function extraFinish() {
+  extraCurrentQ = EK_SORULAR_ADMIN.length;
+  extraIsActive = false;
+  await setExtraState();
+  renderExtraPanel();
+  stopExtraWaitingCount();
+}
+
+async function setExtraState() {
+  try {
+    await fetch(`${API}/api/admin/extra-quiz/state`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ current_question: extraCurrentQ, is_active: extraIsActive })
+    });
+  } catch(e) {}
+}
+
+async function fetchExtraWaitingCount() {
+  if (!document.getElementById('tab-extra').classList.contains('active')) return;
+  try {
+    const res = await fetch(`${API}/api/admin/extra-waiting-count`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('extra-waiting-count').textContent = `${data.count} / ${data.total}`;
+    }
+  } catch(e) {}
+}
+
+function startExtraWaitingCount() {
+  fetchExtraWaitingCount();
+  if (!extraWaitingInterval) {
+    extraWaitingInterval = setInterval(fetchExtraWaitingCount, 5000);
+  }
+}
+
+function stopExtraWaitingCount() {
+  if (extraWaitingInterval) {
+    clearInterval(extraWaitingInterval);
+    extraWaitingInterval = null;
+  }
+}
+
 </script>
 </body>
 </html>
