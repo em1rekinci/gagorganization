@@ -201,7 +201,7 @@
     <div class="progress-wrap"><div class="progress-bar" id="prog-bar" style="width:4%"></div></div>
     <div class="progress-info">
       <span id="prog-text">Soru 1 / 25</span>
-      <span id="score-live" style="display:none;">0 Puan</span>
+      <span id="score-live">0 Puan</span>
     </div>
     <div class="card">
       <div class="q-header">
@@ -213,19 +213,6 @@
     </div>
   </div>
 
-  <!-- YÖNETİCİ BAŞLATMASI BEKLENİYOR -->
-  <div class="screen" id="screen-waiting-start">
-    <div class="card">
-      <div class="waiting-wrap">
-        <div class="waiting-icon">🎯</div>
-        <div class="waiting-title">Hazır Ol!</div>
-        <div class="waiting-sub">
-          Kayıt tamamlandı! Yönetici yarışmayı başlatmayı bekliyor<span class="waiting-dots"></span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- BEKLEME -->
   <div class="screen" id="screen-waiting">
     <div class="card">
@@ -233,7 +220,7 @@
         <div class="waiting-icon">⏳</div>
         <div class="waiting-title">Cevabınız Alındı!</div>
         <div class="waiting-sub">
-          Yönetici bir sonraki soruyu başlatmayı bekliyor<span class="waiting-dots"></span>
+          Admin bir sonraki soruyu başlatmayı bekliyor<span class="waiting-dots"></span>
         </div>
         <div class="answered-badge">✓ Cevaplandı</div>
       </div>
@@ -283,12 +270,11 @@ const QUESTIONS = [
   { q: "Cansum Tatlı'nın Kocasının Adı nedir ?", opts: ["Karabey","Yusufcan Öcal","Sinan Kaya","Batuhan Çelik"], ans: 2 },
   // ORTA - 20 PUAN (11-20) 
   { q: "Teslo Taylan aşağıdakilerden hangi kişiye ev ziyareti yapmamıştır?", opts: ["Ankaralı Batman","Medine","Yakışıklı güvenlik","Güven Demir"], ans: 2 },
-  { q: "Kabede Hacılar Hu Der Allah İlahisiyle Gündeme Gelen Kişi Kimdir ?
-", opts: ["Caner","Cemal","Cemil","Celal"], ans: 3 },
-  { q: "Halilişko patates yemeyi bıraktıktan sonra hangi yemeği daha çok sevmiştir?", opts: ["Makarna","Tost","Yumurta","Ekmek"], ans: 1 },
-  { q: "Ünlü Tiktokerların bir zaman içinde bulundukları evin adı nedir?", opts: ["Glow House","TikTok House","Fenomen House","Fan House "], ans: 2 },
+  { q: "Kış Kızı’nın eşinin adı nedir?", opts: ["Hasan","Murat","Mehmet","Hüseyin"], ans: 0 },
+  { q: "Kadın kadın … en güzel kadını diyen Mükremin gergin hangi yılın en güzel kadınıdır?", opts: ["2021","2023","2025","2024"], ans: 2 },
+  { q: "Kış kızının kardeşi Rabia’nın mesleği nedir?", opts: ["Aşçı","Ev Hanımı","Öğrenci","Başhekim "], ans: 3 },
   { q: "Çoğu TikTok içerik üreticisinin video çektiği duvar hangi AVM'dedir?", opts: ["Marmarapark AVM","ANKAMALL","Optimum AVM","Cevahir AVM"], ans: 3 },
-  { q: "Etkileşim için çocuk yapıyor denilen ve hamileliğiyle gündeme düşen Tiktoker Kimdir ?", opts: ["Cansu Tekin","Özlem Öz","Ceren Yaldız","Hülya Mizgin"], ans: 1 },
+  { q: "Etkileşim için çocuk yapıyor denilen ve hamileliğiyle gündeme düşen Tiktoker Kimdir ?", opts: ["Dilan Polat","Özlem Öz","Ceren Yaldız","Hülya Mizgin"], ans: 1 },
   { q: "TikTok’un ilk kurulduğu dönemdeki adı neydi ve hangi şirket tarafından satın alındı?", opts: ["Vine – Meta","Dubsmash – Google","Musical.ly – ByteDance","Triller – Amazon"], ans: 2 },
   { q: "Arzu hanım ….. cümlesinin devamı nedir?", opts: ["Efendim Fıstık tanesi","Efendim Fındık tanesi","Efendim kar tanesi","Kurabiye var simit var"], ans: 0 },
   { q: "Ağlamaktan ay pardon lensten sözünü kim söylemiştir ?", opts: ["Cemre Solmaz","Buse Korkmaz","Berfinmis","Cağlaca"], ans: 1 },
@@ -296,7 +282,7 @@ const QUESTIONS = [
   // ZOR - 30 PUAN (21-25) 
   { q: "Ceren Yaldızın emojisi nedir ?", opts: ["Gül","Yaprak","Kar Tanesi","Kurdele"], ans: 2 },
   { q: "Hangi Tiktokerin çocukları canlı yayında Devlet tarafından alınmıştır ?", opts: ["Karagül","Hülya Mizgin","Dilan Polat","Özlem Öz"], ans: 0 },
-  { q: "Kış kızının kardeşi Rabia’nın mesleği nedir?", opts: ["Aşçı","Ev Hanımı","Öğrenci","Başhekim"], ans: 3 },
+  { q: "Ünlü Tiktokerların bir zaman içinde bulundukları evin adı nedir?", opts: ["Glow House","TikTok House","Fenomen House","Fan House"], ans: 2 },
   { q: "Semiraminta Tiktok Takipçi Sayısı kaçtır ?", opts: ["10.6 Milyon","8.4 Milyon","11.3 Milyon","12.6 Milyon"], ans: 3 },
   { q: "Kısmetse Olur’da her gün kavga edip barışan çift hangisidir?", opts: ["Belis-Barış","Keren-Perinaz","Su- Metin","Ayla-Cemal"], ans: 0 },
 ];
@@ -326,20 +312,7 @@ async function fetchCurrentQuestion() {
 // Gelen state'e göre ekranı güncelle
 function handleStateUpdate(newQ, isActive) {
   if (!isActive) {
-    // Quiz aktif değilse - eğer kullanıcı quiz'deyse bitir, login'deyse hiçbir şey yapma
-    const quizScreen = document.getElementById('screen-quiz');
-    const waitingScreen = document.getElementById('screen-waiting');
-    if (quizScreen.classList.contains('active') || waitingScreen.classList.contains('active')) {
-      submitAndFinish();
-    }
-    return;
-  }
-  // Quiz aktif - bekleme-start ekranından geçiş yap
-  const waitingStartScreen = document.getElementById('screen-waiting-start');
-  if (waitingStartScreen.classList.contains('active')) {
-    qIdx = newQ;
-    showScreen('quiz');
-    renderQ();
+    submitAndFinish();
     return;
   }
   if (newQ !== qIdx) {
@@ -357,8 +330,6 @@ function handleStateUpdate(newQ, isActive) {
 
 // Supabase Realtime + polling fallback
 let pollInterval = null;
-let lastKnownIsActive = null;
-let lastKnownQ = null;
 
 function subscribeToQuizState() {
   // Önce eski kanalı kapat
@@ -376,38 +347,21 @@ function subscribeToQuizState() {
     }, (payload) => {
       const newQ = payload.new.current_question;
       const isActive = payload.new.is_active;
-      lastKnownIsActive = isActive;
-      lastKnownQ = newQ;
       handleStateUpdate(newQ, isActive);
     })
     .subscribe((status) => {
       console.log('Realtime status:', status);
     });
 
-  // Mevcut durumu kaydet (polling karşılaştırması için)
-  fetchCurrentQuestion().then(state => {
-    if (state) {
-      lastKnownIsActive = state.is_active;
-      lastKnownQ = state.current_question;
-    }
-  });
-
-  // Polling fallback — her 2 saniyede bir kontrol et, SADECE değişiklikte tetikle
+  // Polling fallback — her 2 saniyede bir kontrol et
   if (pollInterval) clearInterval(pollInterval);
   pollInterval = setInterval(async () => {
-    // Bekleme ekranlarında poll et
+    // Sadece bekleme ekranındaysa poll et
     const waitingScreen = document.getElementById('screen-waiting');
-    const waitingStartScreen = document.getElementById('screen-waiting-start');
-    if (!waitingScreen.classList.contains('active') && !waitingStartScreen.classList.contains('active')) return;
+    if (!waitingScreen.classList.contains('active')) return;
 
     const state = await fetchCurrentQuestion();
-    if (!state) return;
-
-    // Sadece değişiklik olduğunda tetikle
-    const changed = state.is_active !== lastKnownIsActive || state.current_question !== lastKnownQ;
-    if (changed) {
-      lastKnownIsActive = state.is_active;
-      lastKnownQ = state.current_question;
+    if (state) {
       handleStateUpdate(state.current_question, state.is_active);
     }
   }, 2000);
@@ -434,22 +388,13 @@ async function handleLogin() {
     if (!res.ok) throw new Error();
     user = { email, name };
     
-    // Önce mevcut quiz state'ini kontrol et
-    subscribeToQuizState();
+    // Supabase'den mevcut durumu al
     const state = await fetchCurrentQuestion();
-    if (state && state.is_active) {
-      // Quiz zaten aktif — doğrudan ilgili soruya git
-      qIdx = state.current_question;
-      if (qIdx >= QUESTIONS.length) {
-        submitAndFinish();
-      } else {
-        showScreen('quiz');
-        renderQ();
-      }
-    } else {
-      // Quiz henüz başlamamış — bekleme ekranına al
-      showScreen('waiting-start');
+    if (state) {
+      qIdx = state.current_question || 0;
     }
+    
+    startQuiz();
   } catch {
     document.getElementById('err-email').textContent = 'Sunucuya bağlanılamadı. API adresini kontrol edin.';
     btn.disabled = false; btn.textContent = 'Yarışmaya Başla →';
