@@ -203,6 +203,7 @@
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('tab-leaderboard', this)">📊 Sıralama</button>
       <button class="tab-btn" onclick="switchTab('tab-live', this)">🎮 Canlı Kontrol</button>
+      <button class="tab-btn" onclick="switchTab('tab-extra', this); initExtraTab()">⚡ Ek Sorular</button>
     </div>
 
     <!-- SIRALAMА SEKMESİ -->
@@ -284,13 +285,66 @@
         </button>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-top:0.75rem;">
-          <button class="btn-finish-q" onclick="adminFinishQuiz()">
+          <button class="btn-restart-q" id="btn-prev-q" onclick="adminPrevQuestion()" style="background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);color:var(--blue);">
+            ← ÖNCEKİ SORU
+          </button>
+          <button class="btn-next-q" id="btn-start-q" onclick="adminStartQuiz()" style="display:none;">
+            ▶ YARIŞMAYI BAŞLAT
+          </button>
+          <button class="btn-finish-q" id="btn-finish-q" onclick="adminFinishQuiz()">
             🏁 Yarışmayı Bitir
           </button>
           <button class="btn-restart-q" onclick="adminRestartQuiz()">
             🔄 Baştan Başlat
           </button>
+          <button class="btn-restart-q" onclick="adminResetState()" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;">
+            ⏹ Sıfırla (Beklet)
+          </button>
         </div>
+      </div>
+
+    </div><!-- /tab-live -->
+
+    <!-- EK SORULAR SEKMESİ -->
+    <div class="tab-panel" id="tab-extra">
+
+      <!-- DURUM KARTI -->
+      <div class="live-card" id="extra-state-card">
+        <div style="display:flex;align-items:center;margin-bottom:1.5rem;">
+          <span class="live-status-dot" id="extra-dot" style="background:var(--muted);animation:none;"></span>
+          <span style="font-size:0.85rem;font-weight:700;letter-spacing:1px;" id="extra-status-label">YÜKLENİYOR...</span>
+          <span style="margin-left:auto;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--muted);" id="extra-q-counter">— / 10</span>
+        </div>
+
+        <div class="live-progress">
+          <span id="extra-q-info">Ek sorular henüz başlatılmadı.</span>
+          <span id="extra-badge" style="font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--accent2);letter-spacing:1px;">⚡ EK SORU · 10 PT</span>
+        </div>
+
+        <div id="extra-q-num" class="live-q-num">—</div>
+        <div id="extra-q-text" class="live-q-text" style="color:var(--muted);">Ek soruları başlatmak için aşağıdaki butona basın.</div>
+        <div class="live-q-opts" id="extra-opts"></div>
+
+        <div class="waiting-count-box">
+          <div>
+            <div class="waiting-count-num" id="extra-waiting-count">—</div>
+            <div class="waiting-count-lbl">ek soruları tamamladı</div>
+          </div>
+          <div style="margin-left:auto;color:var(--muted);font-size:0.78rem;">Her 5sn'de güncellenir</div>
+        </div>
+
+        <div style="display:flex;gap:0.6rem;flex-direction:column;">
+          <button class="btn-next-q" id="extra-btn-start" onclick="extraStart()">▶ EK SORULARI BAŞLAT</button>
+          <button class="btn-next-q" id="extra-btn-next" onclick="extraNext()" style="display:none;">SONRAKİ SORU →</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;">
+            <button class="btn-restart-q" id="extra-btn-prev" onclick="extraPrev()" style="display:none;background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);color:var(--blue);padding:0.85rem;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;">← ÖNCEKİ SORU</button>
+            <button class="btn-finish-q" id="extra-btn-finish" onclick="extraFinish()" style="display:none;">🏁 Ek Soruları Bitir</button>
+            <button class="btn-restart-q" onclick="extraResetState()" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;">⏹ Sıfırla (Beklet)</button>
+            <button class="btn-restart-q" onclick="extraRestartQuiz()" style="background:rgba(96,165,250,0.05);border:1px solid rgba(96,165,250,0.2);color:var(--blue);">🔄 Baştan Başlat</button>
+          </div>
+        </div>
+
+        <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--green);font-weight:600;text-align:center;" id="extra-ans-info"></div>
       </div>
 
     </div>
@@ -325,18 +379,18 @@ const QUESTIONS = [
   { q: "Hülya Mizgin'in çocuklarının adı nedir?", opts: ["Abdi ve Hira","Abdur ve Hera","Ayan ve Mira","Abdu ve Lara"], ans: 0 },
   { q: "Cansum Tatlı'nın Kocasının Adı nedir ?", opts: ["Karabey","Yusufcan Öcal","Sinan Kaya","Batuhan Çelik"], ans: 2 },
   { q: "Teslo Taylan aşağıdakilerden hangi kişiye ev ziyareti yapmamıştır?", opts: ["Ankaralı Batman","Medine","Yakışıklı güvenlik","Güven Demir"], ans: 2 },
-  { q: "Kış Kızı'nın eşinin adı nedir?", opts: ["Hasan","Murat","Mehmet","Hüseyin"], ans: 0 },
-  { q: "Kadın kadın … en güzel kadını diyen Mükremin gergin hangi yılın en güzel kadınıdır?", opts: ["2021","2023","2025","2024"], ans: 2 },
-  { q: "Kış kızının kardeşi Rabia'nın mesleği nedir?", opts: ["Aşçı","Ev Hanımı","Öğrenci","Başhekim "], ans: 3 },
+  { q: "Kabede Hacılar Hu Der Allah İlahisiyle Gündeme Gelen Kişi Kimdir ?", opts: ["Caner","Cemal","Cemil","Celal"], ans: 3 },
+  { q: "Halilişko patates yemeyi bıraktıktan sonra hangi yemeği daha çok sevmiştir?", opts: ["Makarna","Tost","Yumurta","Ekmek"], ans: 1 },
+  { q: "Ünlü Tiktokerların bir zaman içinde bulundukları evin adı nedir?", opts: ["Glow House","TikTok House","Fenomen House","Fan House "], ans: 2 },
   { q: "Çoğu TikTok içerik üreticisinin video çektiği duvar hangi AVM'dedir?", opts: ["Marmarapark AVM","ANKAMALL","Optimum AVM","Cevahir AVM"], ans: 3 },
-  { q: "Etkileşim için çocuk yapıyor denilen ve hamileliğiyle gündeme düşen Tiktoker Kimdir ?", opts: ["Dilan Polat","Özlem Öz","Ceren Yaldız","Hülya Mizgin"], ans: 1 },
+  { q: "Etkileşim için çocuk yapıyor denilen ve hamileliğiyle gündeme düşen Tiktoker Kimdir ?", opts: ["Cansu Tekin","Özlem Öz","Ceren Yaldız","Hülya Mizgin"], ans: 1 },
   { q: "TikTok'un ilk kurulduğu dönemdeki adı neydi ve hangi şirket tarafından satın alındı?", opts: ["Vine – Meta","Dubsmash – Google","Musical.ly – ByteDance","Triller – Amazon"], ans: 2 },
   { q: "Arzu hanım ….. cümlesinin devamı nedir?", opts: ["Efendim Fıstık tanesi","Efendim Fındık tanesi","Efendim kar tanesi","Kurabiye var simit var"], ans: 0 },
   { q: "Ağlamaktan ay pardon lensten sözünü kim söylemiştir ?", opts: ["Cemre Solmaz","Buse Korkmaz","Berfinmis","Cağlaca"], ans: 1 },
   { q: "Selin Ciğerci ve Gökhan Çıra ilişkisinde en çok konuşulan ayrılık sebebi neydi?", opts: ["Futbol transferi","Özel hayat ve güven problemleri iddiaları","TikTok hesabı yönetimi","TV programı anlaşmazlığı"], ans: 1 },
   { q: "Ceren Yaldızın emojisi nedir ?", opts: ["Gül","Yaprak","Kar Tanesi","Kurdele"], ans: 2 },
   { q: "Hangi Tiktokerin çocukları canlı yayında Devlet tarafından alınmıştır ?", opts: ["Karagül","Hülya Mizgin","Dilan Polat","Özlem Öz"], ans: 0 },
-  { q: "Ünlü Tiktokerların bir zaman içinde bulundukları evin adı nedir?", opts: ["Glow House","TikTok House","Fenomen House","Fan House"], ans: 2 },
+  { q: "Kış kızının kardeşi Rabia’nın mesleği nedir?", opts: ["Aşçı","Ev Hanımı","Öğrenci","Başhekim"], ans: 3 },
   { q: "Semiraminta Tiktok Takipçi Sayısı kaçtır ?", opts: ["10.6 Milyon","8.4 Milyon","11.3 Milyon","12.6 Milyon"], ans: 3 },
   { q: "Kısmetse Olur'da her gün kavga edip barışan çift hangisidir?", opts: ["Belis-Barış","Keren-Perinaz","Su- Metin","Ayla-Cemal"], ans: 0 },
 ];
@@ -344,6 +398,7 @@ const QUESTIONS = [
 let token = null;
 let allData = [];
 let liveCurrentQ = 0;
+let liveIsActive = false;
 let waitingCountInterval = null;
 
 async function doLogin() {
@@ -378,6 +433,7 @@ function switchTab(tabId, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
   btn.classList.add('active');
+  if (tabId === 'tab-extra') { initExtraTab(); }
 }
 
 // =============================================
@@ -392,20 +448,59 @@ async function initLiveControl() {
     .single();
 
   if (error) {
-    // Eğer kayıt yoksa oluştur
-    await supabaseClient.from('quiz_state').upsert({ id: 1, current_question: 0, is_active: true });
+    // Kayıt yoksa oluştur
+    await supabaseClient.from('quiz_state').upsert({ id: 1, current_question: 0, is_active: false });
     liveCurrentQ = 0;
+    liveIsActive = false;
   } else {
     liveCurrentQ = data.current_question || 0;
+    liveIsActive = data.is_active || false;
+  }
+
+  // Admin paneli her açıldığında is_active=false yap — admin elle başlatır
+  if (liveIsActive) {
+    await supabaseClient.from('quiz_state').update({ is_active: false }).eq('id', 1);
+    liveIsActive = false;
   }
 
   renderLiveQuestion();
   startWaitingCountPoll();
 }
 
+async function adminResetState() {
+  if (!confirm('Quiz durumunu SIFIRLA? Herkes tekrar bekleme ekranına düşer.')) return;
+  await supabaseClient.from('quiz_state').update({ is_active: false, current_question: 0 }).eq('id', 1);
+  liveCurrentQ = 0;
+  liveIsActive = false;
+  renderLiveQuestion();
+}
+
 function renderLiveQuestion() {
   const dot = document.getElementById('live-dot');
   const label = document.getElementById('live-status-label');
+  const btnNext = document.getElementById('btn-next-q');
+  const btnPrev = document.getElementById('btn-prev-q');
+  const btnStart = document.getElementById('btn-start-q');
+  const btnFinish = document.getElementById('btn-finish-q');
+
+  // Quiz başlatılmamış (is_active=false ve quiz bitmemişse)
+  if (!liveIsActive && liveCurrentQ < QUESTIONS.length) {
+    dot.style.background = 'var(--muted)';
+    dot.style.animation = 'none';
+    label.style.color = 'var(--muted)';
+    label.textContent = 'BAŞLAMADI';
+    document.getElementById('live-q-num').textContent = '—';
+    document.getElementById('live-q-text').textContent = 'Yarışmayı başlatmak için aşağıdaki butona basın.';
+    document.getElementById('live-q-opts').innerHTML = '';
+    document.getElementById('live-q-counter').textContent = '— / 25';
+    document.getElementById('live-prog-txt').textContent = 'Bekleniyor...';
+    btnNext.style.display = 'none';
+    btnPrev.style.display = 'none';
+    btnStart.style.display = 'block';
+    btnFinish.style.display = 'none';
+    clearInterval(waitingCountInterval);
+    return;
+  }
 
   if (liveCurrentQ >= QUESTIONS.length) {
     // Yarışma bitti
@@ -416,15 +511,17 @@ function renderLiveQuestion() {
     document.getElementById('live-q-num').textContent = '✓';
     document.getElementById('live-q-text').textContent = 'Tüm sorular tamamlandı. Sonuçlar açıklanabilir.';
     document.getElementById('live-q-opts').innerHTML = '';
-    document.getElementById('btn-next-q').disabled = true;
-    document.getElementById('btn-next-q').textContent = 'TAMAMLANDI ✓';
     document.getElementById('live-q-counter').textContent = '25 / 25';
     document.getElementById('live-prog-txt').textContent = 'Tamamlandı';
+    btnNext.style.display = 'none';
+    btnPrev.style.display = 'none';
+    btnStart.style.display = 'none';
+    btnFinish.style.display = 'none';
     clearInterval(waitingCountInterval);
     return;
   }
 
-  // Normal durum
+  // Normal aktif durum
   dot.style.background = 'var(--green)';
   dot.style.animation = 'blink 1.2s ease-in-out infinite';
   label.style.color = 'var(--green)';
@@ -456,10 +553,26 @@ function renderLiveQuestion() {
     </div>`
   ).join('');
 
-  document.getElementById('btn-next-q').disabled = false;
-  document.getElementById('btn-next-q').textContent = liveCurrentQ < QUESTIONS.length - 1
-    ? 'SONRAKİ SORU →'
-    : "QUIZ'İ BİTİR →";
+  btnStart.style.display = 'none';
+  btnNext.style.display = 'block';
+  btnNext.disabled = false;
+  btnNext.textContent = liveCurrentQ < QUESTIONS.length - 1 ? 'SONRAKİ SORU →' : "QUIZ'İ BİTİR →";
+  btnPrev.style.display = liveCurrentQ > 0 ? 'block' : 'none';
+  btnFinish.style.display = 'block';
+}
+
+async function adminStartQuiz() {
+  if (!confirm('Yarışmayı başlatmak istediğinizden emin misiniz? Tüm katılımcılar 1. soruyu görecek.')) return;
+  const { error } = await supabaseClient
+    .from('quiz_state')
+    .update({ current_question: 0, is_active: true })
+    .eq('id', 1);
+  if (error) { alert('Hata: ' + error.message); return; }
+  liveCurrentQ = 0;
+  liveIsActive = true;
+  renderLiveQuestion();
+  startWaitingCountPoll();
+  alert('Yarışma başlatıldı! Tüm katılımcılar 1. soruya geçti.');
 }
 
 async function adminNextQuestion() {
@@ -482,6 +595,7 @@ async function adminNextQuestion() {
 
   if (isLast) {
     liveCurrentQ = QUESTIONS.length;
+    liveIsActive = false;
     renderLiveQuestion();
     clearInterval(waitingCountInterval);
   } else {
@@ -490,11 +604,25 @@ async function adminNextQuestion() {
   }
 }
 
+async function adminPrevQuestion() {
+  if (liveCurrentQ <= 0) return;
+  const prevQ = liveCurrentQ - 1;
+  const { error } = await supabaseClient
+    .from('quiz_state')
+    .update({ current_question: prevQ, is_active: true })
+    .eq('id', 1);
+  if (error) { alert('Hata: ' + error.message); return; }
+  liveCurrentQ = prevQ;
+  liveIsActive = true;
+  renderLiveQuestion();
+}
+
 async function adminFinishQuiz() {
   if (!confirm('Yarışmayı bitirmek istediğinizden emin misiniz? Tüm katılımcılar sonuç ekranına geçecek.')) return;
   await supabaseClient.from('quiz_state').update({ is_active: false, current_question: QUESTIONS.length }).eq('id', 1);
   clearInterval(waitingCountInterval);
   liveCurrentQ = QUESTIONS.length;
+  liveIsActive = false;
   renderLiveQuestion();
 }
 
@@ -506,6 +634,7 @@ async function adminRestartQuiz() {
     .eq('id', 1);
   if (error) { alert('Hata: ' + error.message); return; }
   liveCurrentQ = 0;
+  liveIsActive = true;
   renderLiveQuestion();
   startWaitingCountPoll();
 }
@@ -623,6 +752,222 @@ function logout() {
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+
+// ================================================================
+// EK SORULAR ADMIN - extra_quiz_state id=1 sabit satir
+// ================================================================
+const EK_SORULAR_ADMIN = [
+  { q: "Kadın kadın … en güzel kadını diyen Mükremin gergin hangi yılın en güzel kadınıdır?", opts: ["2021","2023","2025","2024"], ans: 2 },
+  { q: "Kış Kızı’nın eşinin adı nedir?", opts: ["Hasan","Murat","Mehmet","Hüseyin"], ans: 0 },
+  { q: "GAG Organizasyon Tiktok sayfasının en çok izlenen videosu hangisidir?", opts: ["Wegh Hallowen Afiş","Noel Party Afiş","Erkolar Kapatıldı Party Afiş","Big Final2 Party Afiş"], ans: 2 },
+  { q: "Ecrin Su Çobanın son şarkısının adı nedir ?", opts: ["Karma","Masallar Kadar Güzel","Masallar İnan","Pembe Günlüğüm"], ans: 0 },
+  { q: "BerkeJuanın kısa süre önce evlendiği kişi kimdir ?", opts: ["Yaren Alaca","Aysude","Elif Armağan","Beste Kelkit"], ans: 3 },
+  { q: "Fenomen House de Bulanan Taylan Aslen nerelidir ?", opts: ["Türkiye","Kazakistan","Türkmenistan","Afganistan"], ans: 3 },
+  { q: "Dubai'de Türk fenomenlerle ilgili 2026'da yaşanan olay nedir?", opts: ["Ortak bir müzik projesi","Fenomenler arasında kavga görüntülerinin yayılması","Uluslararası ödül töreni","TikTok Shop lansmanı"], ans: 1 },
+  { q: "Erol Yıldırım 'Sen beni her gördüğünde ... olucaksın' demiştir?", opts: ["Üzüleceksin","Ağlaycaksın","Kahrolacaksın","Kıskanacaksın"], ans: 2 },
+  { q: "TikTok hangi yıl global olarak piyasaya sürüldü?", opts: ["2016","2014","2018","2017"], ans: 0 },
+  { q: "Kısmetse Olur ilk sezon şampiyonu Kimdir ?", opts: ["Nur Erkoç ve Batuhan","Cansel Çördük ve Eser","Elif ve Sedat","Ayça ve Emre"], ans: 1 },
+];
+
+let extraCurrentQ = 0;
+let extraIsActive = false;
+let extraWaitingInterval = null;
+
+async function initExtraTab() {
+  const { data, error } = await supabaseClient
+    .from('extra_quiz_state')
+    .select('current_question, is_active')
+    .eq('id', 1)
+    .single();
+
+  if (error) {
+    await supabaseClient.from('extra_quiz_state').upsert({ id: 1, current_question: 0, is_active: false });
+    extraCurrentQ = 0;
+    extraIsActive = false;
+  } else {
+    extraCurrentQ = data.current_question || 0;
+    extraIsActive = data.is_active || false;
+  }
+
+  // Admin sekmesi her açıldığında is_active=false yap — admin elle başlatır
+  if (extraIsActive) {
+    await supabaseClient.from('extra_quiz_state').update({ is_active: false }).eq('id', 1);
+    extraIsActive = false;
+  }
+
+  renderExtraPanel();
+  startExtraWaitingCount();
+}
+
+function renderExtraPanel() {
+  const lbl = document.getElementById('extra-status-label');
+  const dot = document.getElementById('extra-dot');
+  const qInfo = document.getElementById('extra-q-info');
+  const counter = document.getElementById('extra-q-counter');
+  const qNum = document.getElementById('extra-q-num');
+  const qText = document.getElementById('extra-q-text');
+  const btnStart = document.getElementById('extra-btn-start');
+  const btnNext = document.getElementById('extra-btn-next');
+  const btnFinish = document.getElementById('extra-btn-finish');
+  const optsDiv = document.getElementById('extra-opts');
+  const ansInfo = document.getElementById('extra-ans-info');
+
+  if (!extraIsActive && extraCurrentQ < EK_SORULAR_ADMIN.length) {
+    dot.style.background = 'var(--muted)';
+    dot.style.animation = 'none';
+    lbl.textContent = 'BAŞLAMADI';
+    lbl.style.color = 'var(--muted)';
+    qInfo.textContent = 'Ek sorular henüz başlatılmadı.';
+    counter.textContent = `— / ${EK_SORULAR_ADMIN.length}`;
+    qNum.textContent = '—';
+    qText.textContent = 'Ek soruları başlatmak için aşağıdaki butona basın.';
+    qText.style.color = 'var(--muted)';
+    optsDiv.innerHTML = '';
+    ansInfo.textContent = '';
+    btnStart.style.display = 'block';
+    btnNext.style.display = 'none';
+    btnFinish.style.display = 'none';
+    document.getElementById('extra-btn-prev').style.display = 'none';
+    return;
+  }
+
+  if (extraCurrentQ >= EK_SORULAR_ADMIN.length) {
+    dot.style.background = 'var(--green)';
+    dot.style.animation = 'none';
+    lbl.textContent = 'EK SORULAR BİTTİ';
+    lbl.style.color = 'var(--green)';
+    qInfo.textContent = `Tüm ${EK_SORULAR_ADMIN.length} ek soru tamamlandı.`;
+    counter.textContent = `${EK_SORULAR_ADMIN.length} / ${EK_SORULAR_ADMIN.length}`;
+    qNum.textContent = '✓';
+    qText.textContent = 'Ek sorular başarıyla tamamlandı.';
+    qText.style.color = 'var(--green)';
+    optsDiv.innerHTML = '';
+    ansInfo.textContent = '';
+    btnStart.style.display = 'none';
+    btnNext.style.display = 'none';
+    btnFinish.style.display = 'none';
+    document.getElementById('extra-btn-prev').style.display = 'none';
+    return;
+  }
+
+  // Aktif
+  dot.style.background = 'var(--accent)';
+  dot.style.animation = 'blink 1.2s ease-in-out infinite';
+  lbl.textContent = 'AKTİF';
+  lbl.style.color = 'var(--accent)';
+  qInfo.textContent = `Ek Soru ${extraCurrentQ + 1} / ${EK_SORULAR_ADMIN.length} gösteriliyor`;
+  counter.textContent = `${extraCurrentQ + 1} / ${EK_SORULAR_ADMIN.length}`;
+  btnStart.style.display = 'none';
+  btnNext.style.display = 'block';
+  btnNext.textContent = extraCurrentQ < EK_SORULAR_ADMIN.length - 1 ? 'SONRAKİ SORU →' : 'SON SORU (BİTİR) →';
+  document.getElementById('extra-btn-prev').style.display = extraCurrentQ > 0 ? 'block' : 'none';
+  btnFinish.style.display = 'block';
+
+  const q = EK_SORULAR_ADMIN[extraCurrentQ];
+  qNum.textContent = String(extraCurrentQ + 1).padStart(2, '0');
+  qText.textContent = q.q;
+  qText.style.color = 'var(--text)';
+
+  const letters = ['A','B','C','D'];
+  optsDiv.innerHTML = '';
+  q.opts.forEach(function(opt, i) {
+    const isCorrect = i === q.ans;
+    const el = document.createElement('div');
+    el.className = 'live-q-opt' + (isCorrect ? ' correct-opt' : '');
+    el.innerHTML = `<div class="opt-ltr" style="${isCorrect ? 'background:var(--green);color:#000;' : ''}">${letters[i]}</div><div style="color:${isCorrect ? 'var(--text)' : 'var(--muted)'}">${opt}</div>`;
+    optsDiv.appendChild(el);
+  });
+
+  ansInfo.textContent = `✓ Doğru cevap: ${letters[q.ans]} — ${q.opts[q.ans]}`;
+}
+
+async function extraStart() {
+  extraCurrentQ = 0;
+  extraIsActive = true;
+  await setExtraState();
+  renderExtraPanel();
+}
+
+async function extraPrev() {
+  if (extraCurrentQ <= 0) return;
+  extraCurrentQ = extraCurrentQ - 1;
+  extraIsActive = true;
+  await setExtraState();
+  renderExtraPanel();
+}
+
+async function extraNext() {
+  const next = extraCurrentQ + 1;
+  if (next >= EK_SORULAR_ADMIN.length) {
+    await extraFinish();
+    return;
+  }
+  extraCurrentQ = next;
+  extraIsActive = true;
+  await setExtraState();
+  renderExtraPanel();
+}
+
+async function extraFinish() {
+  extraCurrentQ = EK_SORULAR_ADMIN.length;
+  extraIsActive = false;
+  await setExtraState();
+  renderExtraPanel();
+  stopExtraWaitingCount();
+}
+
+async function setExtraState() {
+  const { error } = await supabaseClient
+    .from('extra_quiz_state')
+    .update({ current_question: extraCurrentQ, is_active: extraIsActive })
+    .eq('id', 1);
+  if (error) { alert('Hata: ' + error.message); }
+}
+
+async function extraResetState() {
+  if (!confirm('Ek quiz durumunu SIFIRLA? Herkes tekrar bekleme ekranına düşer.')) return;
+  await supabaseClient.from('extra_quiz_state').update({ is_active: false, current_question: 0 }).eq('id', 1);
+  extraCurrentQ = 0;
+  extraIsActive = false;
+  renderExtraPanel();
+}
+
+async function extraRestartQuiz() {
+  if (!confirm('Ek soruları BAŞTAN başlatmak istediğinizden emin misiniz? Herkes 1. soruya dönecek.')) return;
+  await supabaseClient.from('extra_quiz_state').update({ current_question: 0, is_active: true }).eq('id', 1);
+  extraCurrentQ = 0;
+  extraIsActive = true;
+  renderExtraPanel();
+}
+
+async function fetchExtraWaitingCount() {
+  if (!document.getElementById('tab-extra').classList.contains('active')) return;
+  try {
+    const res = await fetch(`${API}/api/admin/extra-waiting-count`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('extra-waiting-count').textContent = `${data.count} / ${data.total}`;
+    }
+  } catch(e) {}
+}
+
+function startExtraWaitingCount() {
+  fetchExtraWaitingCount();
+  if (!extraWaitingInterval) {
+    extraWaitingInterval = setInterval(fetchExtraWaitingCount, 5000);
+  }
+}
+
+function stopExtraWaitingCount() {
+  if (extraWaitingInterval) {
+    clearInterval(extraWaitingInterval);
+    extraWaitingInterval = null;
+  }
+}
+
 </script>
 </body>
 </html>
