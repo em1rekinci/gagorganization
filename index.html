@@ -434,9 +434,22 @@ async function handleLogin() {
     if (!res.ok) throw new Error();
     user = { email, name };
     
-    // Her zaman bekleme ekranına al — admin başlatana kadar bekle
+    // Önce mevcut quiz state'ini kontrol et
     subscribeToQuizState();
-    showScreen('waiting-start');
+    const state = await fetchCurrentQuestion();
+    if (state && state.is_active) {
+      // Quiz zaten aktif — doğrudan ilgili soruya git
+      qIdx = state.current_question;
+      if (qIdx >= QUESTIONS.length) {
+        submitAndFinish();
+      } else {
+        showScreen('quiz');
+        renderQ();
+      }
+    } else {
+      // Quiz henüz başlamamış — bekleme ekranına al
+      showScreen('waiting-start');
+    }
   } catch {
     document.getElementById('err-email').textContent = 'Sunucuya bağlanılamadı. API adresini kontrol edin.';
     btn.disabled = false; btn.textContent = 'Yarışmaya Başla →';

@@ -457,12 +457,6 @@ async function initLiveControl() {
     liveIsActive = data.is_active || false;
   }
 
-  // Admin paneli her açıldığında is_active=false yap — admin elle başlatır
-  if (liveIsActive) {
-    await supabaseClient.from('quiz_state').update({ is_active: false }).eq('id', 1);
-    liveIsActive = false;
-  }
-
   renderLiveQuestion();
   startWaitingCountPoll();
 }
@@ -788,12 +782,6 @@ async function initExtraTab() {
   } else {
     extraCurrentQ = data.current_question || 0;
     extraIsActive = data.is_active || false;
-  }
-
-  // Admin sekmesi her açıldığında is_active=false yap — admin elle başlatır
-  if (extraIsActive) {
-    await supabaseClient.from('extra_quiz_state').update({ is_active: false }).eq('id', 1);
-    extraIsActive = false;
   }
 
   renderExtraPanel();
