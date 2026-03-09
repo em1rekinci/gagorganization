@@ -420,10 +420,12 @@ async function finishQuiz() {
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
+  const footer = document.getElementById('viona-footer');
+  if (footer) footer.style.display = (id === 'login' || id === 'waiting') ? '' : 'none';
 }
 </script>
 
-<footer class="site-footer">
+<footer class="site-footer" id="viona-footer">
   Tasarım &amp; Geliştirme: <a href="https://vionasoft.com" target="_blank">Vionasoft</a>
 </footer>
 </body>
