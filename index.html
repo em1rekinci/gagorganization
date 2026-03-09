@@ -149,6 +149,24 @@
   .bk-val { font-size: 1.5rem; font-weight: 700; }
   .bk-lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.2rem; }
   .result-msg { text-align: center; color: var(--muted); font-size: 0.88rem; }
+
+  /* FOOTER */
+  .site-footer {
+    background: #13131a;
+    border-top: 1px solid #2a2a38;
+    padding: 20px 40px;
+    text-align: right;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #666680;
+  }
+  .site-footer a {
+    color: #ffd23f;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .site-footer a:hover { color: #ff6b35; }
 </style>
 </head>
 <body>
@@ -550,5 +568,9 @@ function showScreen(id) {
   document.getElementById('screen-'+id).classList.add('active');
 }
 </script>
+
+<footer class="site-footer">
+  Tasarım &amp; Geliştirme: <a href="https://vionasoft.com" target="_blank">Vionasoft</a>
+</footer>
 </body>
 </html>

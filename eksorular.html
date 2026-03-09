@@ -67,6 +67,26 @@
   .waiting-msg { font-size: 0.95rem; color: var(--muted); line-height: 1.7; }
   .dots::after { content: ''; animation: dots 1.5s steps(4,end) infinite; }
   @keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+
+  /* FOOTER */
+  .site-footer {
+    background: #13131a;
+    border-top: 1px solid #2a2a38;
+    padding: 20px 40px;
+    text-align: right;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #666680;
+  }
+  .site-footer a {
+    color: #ffd23f;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .site-footer a:hover {
+    color: #ff6b35;
+  }
 </style>
 </head>
 <body>
@@ -398,5 +418,10 @@ function showScreen(id) {
   document.getElementById('screen-' + id).classList.add('active');
 }
 </script>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  Tasarım &amp; Geliştirme: <a href="https://vionasoft.com" target="_blank">Vionasoft</a>
+</footer>
 </body>
 </html>
