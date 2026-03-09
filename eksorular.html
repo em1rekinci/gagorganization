@@ -77,6 +77,11 @@
     font-family: 'DM Sans', sans-serif;
     font-size: 13px;
     color: #666680;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
   }
   .site-footer a {
     color: #ffd23f;
@@ -84,9 +89,8 @@
     font-weight: 600;
     transition: color 0.2s;
   }
-  .site-footer a:hover {
-    color: #ff6b35;
-  }
+  .site-footer a:hover { color: #ff6b35; }
+  body { padding-bottom: 60px; }
 </style>
 </head>
 <body>
@@ -419,7 +423,6 @@ function showScreen(id) {
 }
 </script>
 
-<!-- FOOTER -->
 <footer class="site-footer">
   Tasarım &amp; Geliştirme: <a href="https://vionasoft.com" target="_blank">Vionasoft</a>
 </footer>
