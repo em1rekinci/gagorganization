@@ -277,35 +277,21 @@ function applyState(state) {
 
   // Aktif değil → bekle
   if (!isActive) {
-    if (!document.getElementById('screen-waiting-start').classList.contains('active')) {
-      showScreen('waiting-start');
-    }
+    showScreen('waiting-start');
     startPolling();
     return;
   }
 
-  const waitingStart = document.getElementById('screen-waiting-start').classList.contains('active');
-  const waitingAnswer = document.getElementById('screen-waiting').classList.contains('active');
-
-  // Waiting-start ekranındayken admin başlattı
-  if (waitingStart) {
+  // Admin soruyu ilerlettiğinde VEYA quiz ilk başladığında geç
+  // (herhangi bir ekrandan - quiz dahil)
+  if (serverQ > localQIdx || document.getElementById('screen-waiting-start').classList.contains('active')) {
     localQIdx = serverQ;
     answered = false;
-    stopPolling();
+    selectedIdx = null;
     showScreen('quiz');
     renderQ();
-    startRealtime();
-    return;
-  }
-
-  // Cevap bekleme ekranındayken veya quiz ekranındayken admin sonraki soruya geçti
-  if (serverQ > localQIdx) {
-    localQIdx = serverQ;
-    answered = false;
-    stopPolling();
-    showScreen('quiz');
-    renderQ();
-    startRealtime();
+    startRealtime(); // realtime bağlantısı kur
+    startPolling();  // polling de devam etsin (fallback)
     return;
   }
 }
@@ -326,9 +312,7 @@ function startRealtime() {
       applyState(payload.new);
     })
     .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        stopPolling();
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
         startPolling();
       }
     });
@@ -340,6 +324,9 @@ function startRealtime() {
 function startPolling() {
   if (pollInterval) return;
   pollInterval = setInterval(async () => {
+    const activeScreens = ['screen-waiting-start', 'screen-waiting', 'screen-quiz'];
+    const anyActive = activeScreens.some(id => document.getElementById(id).classList.contains('active'));
+    if (!anyActive) return;
     try {
       const { data } = await supabaseClient
         .from('extra_quiz_state')
