@@ -284,14 +284,13 @@ function applyState(state) {
     return;
   }
 
-  // Aktif: soru indeksimiz sunucudan gerideyse yeni soruya geç
-  if (serverQ > localQIdx || document.getElementById('screen-waiting-start').classList.contains('active')) {
-    // Kullanıcı bu soruyu cevaplamadıysa yanlış say
-    if (serverQ > localQIdx && !answered && !document.getElementById('screen-waiting-start').classList.contains('active')) {
-      // Cevap verilmeden geçildi → puan ekleme (yanlış kabul)
-    }
-    answered = false;
+  const waitingStart = document.getElementById('screen-waiting-start').classList.contains('active');
+  const waitingAnswer = document.getElementById('screen-waiting').classList.contains('active');
+
+  // Waiting-start ekranındayken admin başlattı
+  if (waitingStart) {
     localQIdx = serverQ;
+    answered = false;
     stopPolling();
     showScreen('quiz');
     renderQ();
@@ -299,14 +298,15 @@ function applyState(state) {
     return;
   }
 
-  // Bekleme ekranındaysak ve soru ilerlediyse
-  if (document.getElementById('screen-waiting').classList.contains('active') && serverQ > localQIdx) {
-    answered = false;
+  // Cevap bekleme ekranındayken veya quiz ekranındayken admin sonraki soruya geçti
+  if (serverQ > localQIdx) {
     localQIdx = serverQ;
+    answered = false;
     stopPolling();
     showScreen('quiz');
     renderQ();
     startRealtime();
+    return;
   }
 }
 
