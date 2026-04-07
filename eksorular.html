@@ -186,16 +186,16 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const EK_SORULAR = [
-  { q: "Sen şu an neye benziyorsun biliyor musun?", opts: ["Sırrık kuşu","Hırrık Kuşu","Cırrık Kuşu","Irrık Kuşu"], ans: 2 },
-  { q: "___ hanfendiye böyle atarsan bana da böyle atarsan yakalanır mı bu?", opts: ["Elbet yakalayamam beyfendi","Hiç yakalayamam beyfendi","Tabi ki yakalayamam","Herhalde yakalayamam beyfendi"], ans: 0 },
-  { q: "—— la ilâhe ilallah mı diyelim yoksa oyun mu oynayalım?", opts: ["Mehmet Talha","Murat Taha","Muhammet Talha","Muhammet Taha"], ans: 2 },
-  { q: "Taksiyi gasp etmesiyle gündeme gelip nakaratı ordan esinlenen şarkı hangisidir?", opts: ["Napıyorsun mesela","Herkes kendine yakışanı yapsın","Bana sor","İlle de sen"], ans: 1 },
-  { q: "'Lan mı' repliğinin devamı nasıldır?", opts: ["Memleket ağzını açamıyo bize","Memleket abi diyip geçinemiyo","Başın gövdene ağır geliyo herhalde","Memleket baba diyip geçinemiyo"], ans: 3 },
-  { q: "___ çıksana sokaklara canım repliği nasıldır?", opts: ["Cio","Gökhan","Özgür","Savaş"], ans: 1 },
-  { q: "Hayırlı olsun İlkkan", opts: ["Anca gelebildik İlkkan","Kusura bakma fırsat bulup gelemedik ama","Yeni işinde başarılar İlkkan","Kutlamaya gidelim İlkkan"], ans: 1 },
-  { q: "Ben burda yatmam değiştir bunu. — Güzel kardeşim ben zaten bu çarşafı yeni değiştirdim, ...... temizliği yapılıyor.", opts: ["İlkbahar","Yaz","Sonbahar","Bahar"], ans: 0 },
-  { q: "Bende sadece 20 lira var. — Ben cüzdan bile getirmedim. — Ben iç çamaşırı bile giymedim sevgilim. — Of... yemeğe gidiyoruz ya!", opts: ["Çağatay","Çağlar","Çağan","Uğur"], ans: 0 },
-  { q: "Muskayla mı sen böylesin? — Meme'si muskayı yaptığını kaç yıl sonra açıklamıştır?", opts: ["1 yıl sonra","2 yıl sonra","4 yıl sonra","5 yıl sonra"], ans: 3 },
+  { q: "Sen şu an neye benziyorsun biliyor musun?", opts: ["Sırrık kuşu","Hırrık Kuşu","Cırrık Kuşu","Irrık Kuşu"], ans: 2, img: "images/eksorusoru1.jpg" },
+  { q: "___ hanfendiye böyle atarsan bana da böyle atarsan yakalanır mı bu?", opts: ["Elbet yakalayamam beyfendi","Hiç yakalayamam beyfendi","Tabi ki yakalayamam","Herhalde yakalayamam beyfendi"], ans: 0, img: "images/eksorusoru2.jpg" },
+  { q: "—— la ilâhe ilallah mı diyelim yoksa oyun mu oynayalım?", opts: ["Mehmet Talha","Murat Taha","Muhammet Talha","Muhammet Taha"], ans: 2, img: "images/eksorusoru3.jpg" },
+  { q: "Taksiyi gasp etmesiyle gündeme gelip nakaratı ordan esinlenen şarkı hangisidir?", opts: ["Napıyorsun mesela","Herkes kendine yakışanı yapsın","Bana sor","İlle de sen"], ans: 1, img: "images/eksorusoru4.jpg" },
+  { q: "'Lan mı' repliğinin devamı nasıldır?", opts: ["Memleket ağzını açamıyo bize","Memleket abi diyip geçinemiyo","Başın gövdene ağır geliyo herhalde","Memleket baba diyip geçinemiyo"], ans: 3, img: "images/eksorusoru5.jpg" },
+  { q: "___ çıksana sokaklara canım repliği nasıldır?", opts: ["Cio","Gökhan","Özgür","Savaş"], ans: 1, img: "images/eksorusoru6.jpg" },
+  { q: "Hayırlı olsun İlkkan", opts: ["Anca gelebildik İlkkan","Kusura bakma fırsat bulup gelemedik ama","Yeni işinde başarılar İlkkan","Kutlamaya gidelim İlkkan"], ans: 1, img: "images/eksorusoru7.jpg" },
+  { q: "Ben burda yatmam değiştir bunu. — Güzel kardeşim ben zaten bu çarşafı yeni değiştirdim, ...... temizliği yapılıyor.", opts: ["İlkbahar","Yaz","Sonbahar","Bahar"], ans: 0, img: "images/eksorusoru8.jpg" },
+  { q: "Bende sadece 20 lira var. — Ben cüzdan bile getirmedim. — Ben iç çamaşırı bile giymedim sevgilim. — Of... yemeğe gidiyoruz ya!", opts: ["Çağatay","Çağlar","Çağan","Uğur"], ans: 0, img: "images/eksorusoru9.jpg" },
+  { q: "Muskayla mı sen böylesin? — Meme'si muskayı yaptığını kaç yıl sonra açıklamıştır?", opts: ["1 yıl sonra","2 yıl sonra","4 yıl sonra","5 yıl sonra"], ans: 3, img: "images/eksorusoru10.jpg" },
 ];
 
 // ================================================================
