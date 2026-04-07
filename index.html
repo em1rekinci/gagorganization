@@ -362,6 +362,10 @@ function handleStateUpdate(newQ, isActive) {
     return;
   }
   if (newQ !== qIdx) {
+    // Kullanıcı bu soruya cevap vermediyse → yanlış say
+    if (!answered) {
+      wrong++;
+    }
     qIdx = newQ;
     if (qIdx >= QUESTIONS.length) {
       submitAndFinish();
