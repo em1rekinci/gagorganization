@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from supabase import create_client, Client
 import os
@@ -11,6 +12,10 @@ from datetime import datetime
 load_dotenv()
 
 app = FastAPI(title="GAG Quiz API")
+
+# Statik görseller — images/ klasörünü serve et
+if os.path.isdir("images"):
+    app.mount("/images", StaticFiles(directory="images"), name="images")
 
 @app.middleware("http")
 async def add_csp_header(request: Request, call_next):
