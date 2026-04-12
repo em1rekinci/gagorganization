@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<link rel="icon" type="image/png" href="/images/gag.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAG Quiz — Ek Sorular</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f; --surface: #13131a; --card: #1a1a24; --border: #2a2a38;
+    --accent: #ff6b35; --accent2: #ffd23f; --text: #e8e8f0; --muted: #666680;
+    --green: #4ade80; --red: #f87171;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  body::before {
+    content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 70% 20%, rgba(255,107,53,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, rgba(255,210,63,0.05) 0%, transparent 40%);
+    pointer-events: none; z-index: 0;
+  }
+  .container { max-width: 640px; margin: 0 auto; padding: 2rem 1.5rem; position: relative; z-index: 1; }
+  .logo-wrap { text-align: center; margin-bottom: 0.5rem; }
+  .logo-wrap img { height: 80px; width: auto; }
+  .tagline { text-align: center; font-size: 1rem; letter-spacing: 4px; color: var(--accent); font-weight: 700; margin-bottom: 0.3rem; }
+  .tagline2 { text-align: center; font-size: 0.75rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3rem; }
+  .screen { display: none; animation: fadeIn 0.35s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; }
+  label { display: block; font-size: 0.75rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 0.5rem; }
+  input[type="email"] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.85rem 1rem; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--accent); }
+  .form-group { margin-bottom: 1.2rem; }
+  .btn { width: 100%; padding: 0.9rem; border-radius: 10px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600; transition: all 0.2s; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #ff8c55); color: white; }
+  .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,107,53,0.35); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+  .error { color: var(--red); font-size: 0.82rem; margin-top: 0.4rem; }
+  .badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 99px; font-size: 0.72rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  .badge-hard { background: rgba(255,107,53,0.15); color: var(--accent); border: 1px solid rgba(255,107,53,0.3); }
+  .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+  .progress-wrap { background: var(--surface); border-radius: 99px; height: 5px; margin-bottom: 0.8rem; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+  .progress-info { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--muted); margin-bottom: 1.5rem; }
+  .btn-next { margin-top: 1.2rem; display: none; }
+  .btn-next.show { display: block; }
+  .q-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+  .q-num { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--accent); line-height: 1; flex-shrink: 0; }
+  .q-text { font-size: 1.05rem; font-weight: 500; line-height: 1.55; padding-top: 0.2rem; }
+  .options { display: grid; gap: 0.65rem; }
+  .option { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; cursor: pointer; transition: all 0.18s; display: flex; align-items: center; gap: 0.8rem; font-size: 0.92rem; }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: rgba(255,107,53,0.07); }
+  .option.selected { border-color: var(--accent); background: rgba(255,107,53,0.12); }
+  .option.disabled { pointer-events: none; }
+  .opt-letter { width: 28px; height: 28px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+  .option.selected .opt-letter { background: var(--accent); color: white; }
+
+  .q-image { width: 100%; max-height: 340px; object-fit: contain; border-radius: 10px; margin-bottom: 1rem; display: block; background: #0a0a0f; }
+  .info-box { background: rgba(255,210,63,0.08); border: 1px solid rgba(255,210,63,0.25); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 1.5rem; font-size: 0.88rem; color: var(--accent2); }
+  /* Bekleme */
+  .waiting-screen { text-align: center; padding: 3rem 2rem; }
+  .waiting-icon { font-size: 3rem; margin-bottom: 1.2rem; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.08);opacity:0.7} }
+  .waiting-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 3px; margin-bottom: 0.8rem; color: var(--accent2); }
+  .waiting-msg { font-size: 0.95rem; color: var(--muted); line-height: 1.7; }
+  .dots::after { content: ''; animation: dots 1.5s steps(4,end) infinite; }
+  @keyframes dots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+
+  /* FOOTER */
+  .site-footer {
+    background: #13131a;
+    border-top: 1px solid #2a2a38;
+    padding: 20px 40px;
+    text-align: right;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: #666680;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+  }
+  .site-footer a {
+    color: #ffd23f;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .site-footer a:hover { color: #ff6b35; }
+  body { padding-bottom: 60px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo-wrap">
+    <img src="/images/gag.png" style="height:90px;width:auto;" alt="GAG Organization" />
+  </div>
+  <div class="tagline">MEME's Quiz</div>
+  <div class="tagline2">Ek Sorular · Eşitlik Bozucu</div>
+
+  <!-- GİRİŞ -->
+  <div class="screen active" id="screen-login">
+    <div class="info-box">
+      ⚡ Bu sayfa yalnızca yönetici tarafından yönlendirilen katılımcılar içindir. Quiz'de eşit puan alan katılımcılar bu sorularla sıralanacak.Yönetici Yönlendirmesi dışında katılım sağlayan yarışmacılar DİSKALİFİYE olucaktır.
+    </div>
+    <div class="card">
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:2px;margin-bottom:0.3rem;">E-posta ile Giriş</h2>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.5rem;">Quiz'de kullandığınız e-posta adresinizi girin.</p>
+      <div class="form-group">
+        <label>E-posta</label>
+        <input type="email" id="inp-email" placeholder="ornek@mail.com" />
+        <div class="error" id="err-email"></div>
+      </div>
+      <button class="btn btn-primary" id="btn-login" onclick="handleLogin()">Giriş Yap →</button>
+    </div>
+  </div>
+
+  <!-- EK SORULAR BAŞLAMADIYSA BEKLE -->
+  <div class="screen" id="screen-waiting-start">
+    <div class="card waiting-screen">
+      <div class="waiting-icon">⏳</div>
+      <div class="waiting-title">Hazır Ol!</div>
+      <div class="waiting-msg">
+        Ek sorular henüz başlamadı.<br>
+        Yönetici başlattığında otomatik olarak geçeceksin<span class="dots"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="screen-quiz">
+    <div class="quiz-top">
+      <span class="badge badge-hard">Ek Soru · 10 PT</span>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="prog-bar" style="width:0%"></div></div>
+    <div class="progress-info">
+      <span id="prog-text">Ek Soru 1 / 10</span>
+      <span></span>
+    </div>
+    <div class="card">
+      <img id="q-image" class="q-image" src="" alt="" style="display:none;">
+      <div class="q-header">
+        <div class="q-num" id="q-num">01</div>
+        <div class="q-text" id="q-text"></div>
+      </div>
+      <div class="options" id="opts"></div>
+      <button class="btn btn-primary btn-next" id="btn-next" onclick="confirmPick()">Devam Et →</button>
+    </div>
+  </div>
+
+  <!-- CEVAP VERİLDİ — ADMİN BEKLENİYOR -->
+  <div class="screen" id="screen-waiting">
+    <div class="card waiting-screen">
+      <div class="waiting-icon">✅</div>
+      <div class="waiting-title">Cevabınız Alındı!</div>
+      <div class="waiting-msg">
+        Yönetici bir sonraki soruyu başlatmayı bekliyor<span class="dots"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SONUÇ -->
+  <div class="screen" id="screen-result">
+    <div class="card" style="text-align:center;padding:3rem 2rem;">
+      <div style="font-size:3.5rem;margin-bottom:1.2rem;">🏁</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;margin-bottom:0.8rem;color:var(--text);">Ek Sorular Bitti!</div>
+      <div style="font-size:1.05rem;color:var(--muted);line-height:1.7;">
+        Cevaplarınız kaydedildi.<br>
+        <span style="color:var(--accent);font-weight:600;">Sonuçlar YÖNETİCİ tarafından açıklanacak. 👀</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const API = "https://gagorganization.fun";
+const SUPABASE_URL = "https://rwognafwhzzynoamswpm.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b2duYWZ3aHp6eW5vYW1zd3BtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NzE2NjksImV4cCI6MjA4NzQ0NzY2OX0.q6j5gyvcwGWWzOSyHZUv9llhwONRd3ppzvrsjFRLRow";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const EK_SORULAR = [
+  { q: "Sen şu an neye benziyorsun biliyor musun?", opts: ["Sırrık kuşu","Hırrık Kuşu","Cırrık Kuşu","Irrık Kuşu"], ans: 2, img: "/images/eksoru1.jpg" },
+  { q: "___ hanfendiye böyle atarsan bana da böyle atarsan yakalanır mı bu?", opts: ["Elbet yakalayamam beyfendi","Hiç yakalayamam beyfendi","Tabi ki yakalayamam","Herhalde yakalayamam beyfendi"], ans: 0, img: "/images/eksoru2.jpg" },
+  { q: "—— la ilâhe ilallah mı diyelim yoksa oyun mu oynayalım?", opts: ["Mehmet Talha","Murat Taha","Muhammet Talha","Muhammet Taha"], ans: 2, img: "/images/eksoru3.jpg" },
+  { q: "Taksiyi gasp etmesiyle gündeme gelip nakaratı ordan esinlenen şarkı hangisidir?", opts: ["Napıyorsun mesela","Herkes kendine yakışanı yapsın","Bana sor","İlle de sen"], ans: 1, img: "/images/eksoru4.jpg" },
+  { q: "'Lan mı' repliğinin devamı nasıldır?", opts: ["Memleket ağzını açamıyo bize","Memleket abi diyip geçinemiyo","Başın gövdene ağır geliyo herhalde","Memleket baba diyip geçinemiyo"], ans: 3, img: "/images/eksoru5.jpg" },
+  { q: "___ çıksana sokaklara canım repliği nasıldır?", opts: ["Cio","Gökhan","Özgür","Savaş"], ans: 1, img: "/images/eksoru6.jpg" },
+  { q: "Hayırlı olsun İlkkan", opts: ["Anca gelebildik İlkkan","Kusura bakma fırsat bulup gelemedik ama","Yeni işinde başarılar İlkkan","Kutlamaya gidelim İlkkan"], ans: 1, img: "/images/eksoru7.jpg" },
+  { q: "Ben burda yatmam değiştir bunu. — Güzel kardeşim ben zaten bu çarşafı yeni değiştirdim, ...... temizliği yapılıyor.", opts: ["İlkbahar","Yaz","Sonbahar","Bahar"], ans: 0, img: "/images/eksoru8.jpg" },
+  { q: "Bende sadece 20 lira var. — Ben cüzdan bile getirmedim. — Ben iç çamaşırı bile giymedim sevgilim. — Of... yemeğe gidiyoruz ya!", opts: ["Çağatay","Çağlar","Çağan","Uğur"], ans: 0, img: "/images/eksoru9.jpg" },
+  { q: "Muskayla mı sen böylesin? — Meme'si muskayı yaptığını kaç yıl sonra açıklamıştır?", opts: ["1 yıl sonra","2 yıl sonra","4 yıl sonra","5 yıl sonra"], ans: 3, img: "/images/eksoru10.jpg" },
+];
+
+// ================================================================
+// STATE
+// ================================================================
+let userEmail = null;
+let localQIdx = 0;        // son gösterilen soru indeksi
+let score = 0;
+let selectedIdx = null;
+let answered = false;     // kullanıcı bu soruyu cevapladı mı?
+let quizFinished = false;
+let realtimeChannel = null;
+let pollInterval = null;
+
+// ================================================================
+// GİRİŞ
+// ================================================================
+async function handleLogin() {
+  const email = document.getElementById('inp-email').value.trim();
+  document.getElementById('err-email').textContent = '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('err-email').textContent = 'Geçerli e-posta girin.';
+    return;
+  }
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true;
+  btn.textContent = 'Kontrol ediliyor...';
+  try {
+    const res = await fetch(`${API}/api/check-user?email=${encodeURIComponent(email)}`);
+    const data = await res.json();
+    if (!data.exists) {
+      document.getElementById('err-email').textContent = "Bu e-posta ana quiz'de kayıtlı değil.";
+      btn.disabled = false; btn.textContent = 'Giriş Yap →';
+      return;
+    }
+    if (data.already_done) {
+      document.getElementById('err-email').textContent = 'Bu e-posta ile ek sorular zaten tamamlandı.';
+      btn.disabled = false; btn.textContent = 'Giriş Yap →';
+      return;
+    }
+    userEmail = email;
+    await checkAndApplyState();
+  } catch (e) {
+    document.getElementById('err-email').textContent = 'Sunucuya bağlanılamadı.';
+    btn.disabled = false; btn.textContent = 'Giriş Yap →';
+  }
+}
+
+// ================================================================
+// SUPABASE STATE OKU & UYGULA
+// ================================================================
+async function checkAndApplyState() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('extra_quiz_state')
+      .select('*')
+      .eq('id', 1)
+      .single();
+    if (error || !data) throw new Error('no data');
+    applyState(data);
+  } catch {
+    // Tablo yok ya da satır yok → henüz başlamadı
+    showScreen('waiting-start');
+    startPolling();
+  }
+}
+
+function applyState(state) {
+  if (!state) return;
+
+  const serverQ = state.current_question || 0;
+  const isActive = state.is_active || false;
+
+  // Bitti mi?
+  if (serverQ >= EK_SORULAR.length && !quizFinished) {
+    finishQuiz();
+    return;
+  }
+
+  // Aktif değil → bekle
+  if (!isActive) {
+    showScreen('waiting-start');
+    startPolling();
+    return;
+  }
+
+  // Admin soruyu ilerlettiğinde VEYA quiz ilk başladığında geç
+  // (herhangi bir ekrandan - quiz dahil)
+  if (serverQ > localQIdx || document.getElementById('screen-waiting-start').classList.contains('active')) {
+    localQIdx = serverQ;
+    answered = false;
+    selectedIdx = null;
+    showScreen('quiz');
+    renderQ();
+    startRealtime(); // realtime bağlantısı kur
+    startPolling();  // polling de devam etsin (fallback)
+    return;
+  }
+}
+
+// ================================================================
+// REALTIME
+// ================================================================
+function startRealtime() {
+  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+  realtimeChannel = supabaseClient
+    .channel('extra_qs_rt_' + Math.random())
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'extra_quiz_state',
+      filter: 'id=eq.1'
+    }, (payload) => {
+      applyState(payload.new);
+    })
+    .subscribe((status) => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        startPolling();
+      }
+    });
+}
+
+// ================================================================
+// POLLING (Realtime fallback, sadece bekleme ekranında)
+// ================================================================
+function startPolling() {
+  if (pollInterval) return;
+  pollInterval = setInterval(async () => {
+    const activeScreens = ['screen-waiting-start', 'screen-waiting', 'screen-quiz'];
+    const anyActive = activeScreens.some(id => document.getElementById(id).classList.contains('active'));
+    if (!anyActive) return;
+    try {
+      const { data } = await supabaseClient
+        .from('extra_quiz_state')
+        .select('*')
+        .eq('id', 1)
+        .single();
+      if (data) applyState(data);
+    } catch {}
+  }, 2000);
+}
+
+function stopPolling() {
+  if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+}
+
+// ================================================================
+// QUIZ RENDER
+// ================================================================
+function renderQ() {
+  selectedIdx = null;
+  answered = false;
+  const q = EK_SORULAR[localQIdx];
+  document.getElementById('q-num').textContent = String(localQIdx + 1).padStart(2, '0');
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('prog-text').textContent = `Ek Soru ${localQIdx + 1} / ${EK_SORULAR.length}`;
+  document.getElementById('prog-bar').style.width = ((localQIdx / EK_SORULAR.length) * 100) + '%';
+
+  const letters = ['A', 'B', 'C', 'D'];
+  const container = document.getElementById('opts');
+  container.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const el = document.createElement('div');
+    el.className = 'option';
+    el.innerHTML = `<div class="opt-letter">${letters[i]}</div><div>${opt}</div>`;
+    el.onclick = () => pick(i, el);
+    container.appendChild(el);
+  });
+  // Soru görseli
+  const imgEl = document.getElementById('q-image');
+  if (q.img) {
+    imgEl.src = q.img;
+    imgEl.style.display = 'block';
+  } else {
+    imgEl.style.display = 'none';
+  }
+
+  document.getElementById('btn-next').classList.remove('show');
+}
+
+function pick(idx, el) {
+  document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedIdx = idx;
+  document.getElementById('btn-next').classList.add('show');
+}
+
+async function confirmPick() {
+  if (selectedIdx === null) return;
+
+  answered = true;
+
+  // Seçimi kilitle
+  document.querySelectorAll('.option').forEach(o => o.classList.add('disabled'));
+  document.getElementById('btn-next').classList.remove('show');
+
+  // Puanı hesapla
+  if (selectedIdx === EK_SORULAR[localQIdx].ans) score += 10;
+
+  // Son soruysa direkt bitir
+  if (localQIdx + 1 >= EK_SORULAR.length) {
+    await finishQuiz();
+  } else {
+    // Yönetici sonraki soruyu açana kadar bekle
+    showScreen('waiting');
+    startPolling();
+  }
+}
+
+async function finishQuiz() {
+  if (quizFinished) return;
+  quizFinished = true;
+  stopPolling();
+  if (realtimeChannel) {
+    supabaseClient.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+  try {
+    await fetch(`${API}/api/submit-extra`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: userEmail, extra_score: score })
+    });
+  } catch {}
+  showScreen('result');
+}
+
+// ================================================================
+// YARDIMCI
+// ================================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  const footer = document.getElementById('viona-footer');
+  if (footer) footer.style.display = (id === 'login' || id === 'waiting') ? '' : 'none';
+}
+</script>
+
+<footer class="site-footer" id="viona-footer">
+  Tasarım &amp; Geliştirme: <a href="https://vionasoft.com" target="_blank">Vionasoft</a>
+</footer>
+</body>
+</html>
